@@ -1,5 +1,5 @@
 # ChatRLB 
-## Team Cross Compile
+### A Capstone Project by Team Cross Compile
 
 Welcome to the repository for ChatRLB, a WebApp allowing users to chat with an AI system adhering to the source materials of the project sponsor - Red Letter Basics.
 
@@ -11,4 +11,5 @@ The team members are:
 - Rylie Nabors
 
 Project sponsor: Austin Woodruff with Red Letter Basics
+
 Class professor: Diana Rabah
