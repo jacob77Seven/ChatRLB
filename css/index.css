@@ -1,0 +1,39 @@
+/* google fonts*/
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,100..1000;1,100..1000&display=swap');
+
+/*CSS Reset*/
+
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'DM Sans', sans-serif;
+}
+
+/*CHATRLB COLORS*/
+:root{
+    --mainColor: #19C37D ;
+    --textColor: rgb(209, 213, 219);
+    --headingColor: rgb(255, 255, 255) ;
+    --asideColor: #202123;
+    --bodyBGColor: #343541;
+    --BGColor: #40414F ;
+}
+
+body{
+    background-color: var(--bodyBGColor);
+    color: var(--textColor);
+
+}
+
+aside{
+    width: 260px;
+    height: 100vh;
+    background-color: var(--asideColor);
+    position: fixed;
+    top: 0;
+    transition : 0.3s;
+    left: 0; 
+
+}
