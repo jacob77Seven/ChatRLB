@@ -153,29 +153,18 @@ main{
 
 main #inner{
      max-width: 800px;
-     height: 100%;
-     /*background-color: rgb(114, 114, 152);*/
+     height: 100vh;
     margin: 0 auto;
     padding: 20px;
     position: relative;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
+    overflow: hidden;
 
 }
 
-main #inner .top-btns{
-    width: 100%;
-    background-color: var(--asideColor);
-    margin: 0 auto;
-    padding: 3px;
-    display: flex;
-    border-radius: 5px;
-    justify-content: space-between;
-    align-items: center;
-    gap: 3px;
-}
 
 main #inner .logo{
     text-align:center;
@@ -191,6 +180,7 @@ main #inner .logo{
 
 main #inner .searchBox{
     width: 100%;
+    
 }
 
 main #inner .searchBox form{
@@ -224,4 +214,41 @@ main #inner .searchBox form button{
     border-radius: 5px;
     cursor: pointer;
     transition: 0.2s;
+}
+
+.logo-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    background-color: rgb(104, 94, 94);
+    transition: all 0.3s ease-in-out;
+}
+
+.logo-container img {
+    width: 350px;  /* Adjust size as needed */
+    height: auto;  /* Keeps aspect ratio */
+    max-width: 100%;
+    transition: width 0.3s ease-in-out;
+}
+
+.profile-icon {
+    position: absolute;
+    top: 10px; /* Distance from top */
+    right: 20px; /* Distance from right */
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--BGColor);
+    border-radius: 50%;
+    color: var(--headingColor);
+    font-size: 20px;
+    cursor: pointer;
+    transition: background 0.3s ease-in-out;
+}
+
+.profile-icon:hover {
+    background-color: var(--mainColor);
 }
