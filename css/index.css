@@ -34,19 +34,21 @@ aside{
     top: 0;
     left: 0; /* Ensure the initial position is set */
     transition: 0.2s;
-    overflow: hidden;  
+    /*overflow: hidden;*/  
     display: flex;
     flex-direction: column;
     justify-content: space-between;
 }
 
 aside header{
+    font-size: 0.8em;
+    font-style: italic; 
     padding: 10px;
     display: flex;
     flex-direction: column;
     gap: 10px;
     height: 100%;
-    overflow-y: auto;
+    /*overflow-y: auto; */
 }
 
 aside header .action-btns{
@@ -220,7 +222,7 @@ main #inner .searchBox form button{
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 10px;
+    padding: 8px;
     background-color: rgb(104, 94, 94);
     transition: all 0.3s ease-in-out;
 }
