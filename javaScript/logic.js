@@ -28,3 +28,8 @@ document.addEventListener("DOMContentLoaded", function() {
 document.getElementById('settings-btn').addEventListener('click', function() {
     alert("Settings clicked! Implement your settings menu here.");
 });
+
+document.querySelector(".profile-icon").addEventListener("click", function () {
+    alert("Profile menu will be here!");
+});
+
