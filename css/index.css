@@ -57,7 +57,7 @@ aside header .action-btns{
 }
 
 aside header .action-btns button{
-    width: 195px;
+    width: 250px;
     padding: 11px 15px;
     background: none;
     border: 1px solid var(--borderColor);
@@ -100,6 +100,7 @@ aside header .bottom-row{
     cursor: pointer;
     transition: left 0.3s ease-in-out, bottom 0.3s ease-in-out;
     z-index: 1000; 
+    rotate: 90deg;
     /* Keep it above everything */
 }
 
@@ -108,3 +109,30 @@ aside header .bottom-row{
     color: var(--headingColor);
 }
 
+aside header .bottom-row{
+    width: 100%;
+    border-top: 1px solid var(--borderColor);
+    padding-top: 10px;
+    position: relative;
+}
+
+#settings-btn {
+    width: 40px;
+    height: 40px;
+    text-align: center;
+    line-height: 40px;
+    color: var(--headingColor);
+    border: 1px solid var(--borderColor);
+    border-radius: 5px;
+    background-color: var(--asideColor);
+    cursor: pointer;
+    transition: left 0.3s ease-in-out, color 0.3s ease-in-out;
+    display: flex;
+    justify-content: center;
+    align-items: center; 
+}
+
+#settings-btn:hover {
+    background-color: var(--mainColor);
+    color: var(--headingColor);
+}
