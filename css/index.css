@@ -136,3 +136,92 @@ aside header .bottom-row{
     background-color: var(--mainColor);
     color: var(--headingColor);
 }
+
+/*Responsive View*/
+@media only screen and (max-width: 768px){
+    main{
+        margin-left: 0px;
+    }
+}
+/*MAIN CONTENT*/
+main{
+    background-color: rgb(126, 114, 114);
+    height: 100vh;
+    margin-left: 260px;
+    transition: 0.3s;
+}
+
+main #inner{
+     max-width: 800px;
+     height: 100%;
+     /*background-color: rgb(114, 114, 152);*/
+    margin: 0 auto;
+    padding: 20px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+
+}
+
+main #inner .top-btns{
+    width: 100%;
+    background-color: var(--asideColor);
+    margin: 0 auto;
+    padding: 3px;
+    display: flex;
+    border-radius: 5px;
+    justify-content: space-between;
+    align-items: center;
+    gap: 3px;
+}
+
+main #inner .logo{
+    text-align:center;
+    position: absolute;
+    top: 120px;
+    left: 0;
+    right: 0;
+    bottom: 200px;
+    font-size: 25px;
+    font-weight: 7s;
+    color: rgb(104, 94, 94);
+}
+
+main #inner .searchBox{
+    width: 100%;
+}
+
+main #inner .searchBox form{
+    padding: 1rem;
+    background-color: var(--BGColor);
+    border-radius: 7px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+main #inner .searchBox form textarea{
+    width: 100%;
+    overflow-y: hidden;
+    background: none;
+    border: none;
+    resize: none;
+    outline: none;
+    color: var(--headingColor);
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 24px;
+}
+
+main #inner .searchBox form button{
+    padding: 10px 15px;
+    background-color: var(--mainColor);
+    color: var(--headingColor);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.2s;
+}
