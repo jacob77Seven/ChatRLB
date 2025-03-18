@@ -24,7 +24,6 @@
 body{
     background-color: var(--bodyBGColor);
     color: var(--textColor);
-
 }
 
 aside{
@@ -33,16 +32,17 @@ aside{
     background-color: var(--asideColor);
     position: fixed;
     top: 0;
-    transition : 0.2s;
-    left: 0;
+    left: 0; /* Ensure the initial position is set */
+    transition: 0.2s;
     overflow: hidden;  
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 aside header{
     padding: 10px;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
     flex-direction: column;
     gap: 10px;
     height: 100%;
@@ -77,7 +77,18 @@ aside header .action-btns button:hover{
     color: var(--headingColor);
 }
 
-aside header .action-btns #minimize{
+aside header .bottom-row{
+    margin-top: auto;
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#toggle-sidebar {
+    position: fixed; /* Keep it always visible */
+    left: 200px;  /* Start inside the sidebar */
+    bottom: 20px; /* Anchored to the bottom */
     width: 40px;
     height: 40px;
     text-align: center;
@@ -85,29 +96,15 @@ aside header .action-btns #minimize{
     color: var(--headingColor);
     border: 1px solid var(--borderColor);
     border-radius: 5px;
-    text-align: center;
-    transform: rotate(90deg);
+    background-color: var(--asideColor);
     cursor: pointer;
-    transition: 0.3s;
+    transition: left 0.3s ease-in-out, bottom 0.3s ease-in-out;
+    z-index: 1000; 
+    /* Keep it above everything */
 }
 
-aside header .action-btns #minimize:hover{
+#toggle-sidebar:hover {
     background-color: var(--mainColor);
     color: var(--headingColor);
 }
-#maximize {
-    width: 40px;
-    height: 40px;
-    text-align: center;
-    line-height: 40px;
-    color: var(--headingColor);
-    border: 1px solid var(--borderColor);
-    border-radius: 5px;
-    text-align: center;
-    transform: rotate(90deg);
-    cursor: pointer;
-    transition: 0.3s;
-    position: fixed;
-    top: 5px;
-    left: 5px;
-}
+
