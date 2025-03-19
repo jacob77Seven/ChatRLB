@@ -101,7 +101,7 @@ aside header .bottom-row{
     background-color: var(--asideColor);
     cursor: pointer;
     transition: left 0.3s ease-in-out, bottom 0.3s ease-in-out;
-    z-index: 1000; 
+    z-index: 1;
     rotate: 90deg;
     /* Keep it above everything */
 }
