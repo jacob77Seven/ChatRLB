@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", function() {
             main.style.marginLeft = "0px"; // Adjust main content
         } else {
             aside.style.left = "0px"; // Show sidebar
-            toggleBtn.style.left = "270px";  // Move button inside sidebar
+            toggleBtn.style.left = "200px";  // Move button inside sidebar
             toggleBtn.classList.remove("fa-bars");
             toggleBtn.classList.add("fa-window-maximize"); // Change back
             main.style.marginLeft = "260px"; // Adjust main content
