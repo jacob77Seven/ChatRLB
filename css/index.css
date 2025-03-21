@@ -79,7 +79,34 @@ aside header .action-btns button:hover{
     color: var(--headingColor);
 }
 
-aside header .bottom-row{
+/* settings popup section starts here */
+aside header .bottom {
+    margin-top: auto; /* moves section to bottom */
+}
+
+aside header .bottom .settings-popup {
+    display: flex;
+    flex-direction: column;
+}
+
+aside header .bottom .settings-popup .popup-box {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    border: 1px solid var(--borderColor);
+}
+
+aside header .bottom .settings-popup .popup-box p {
+    font-style: normal;
+}
+
+aside header .bottom .settings-popup .popup-box:hover {
+    background-color: var(--mainColor);
+    color: var(--headingColor);
+}
+/* settings popup section ends here */
+
+aside header .bottom .bottom-row{
     margin-top: auto;
     padding: 10px;
     display: flex;
@@ -111,7 +138,7 @@ aside header .bottom-row{
     color: var(--headingColor);
 }
 
-aside header .bottom-row{
+aside header .bottom .bottom-row{
     width: 100%;
     border-top: 1px solid var(--borderColor);
     padding-top: 10px;
