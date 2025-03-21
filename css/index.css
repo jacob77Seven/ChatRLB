@@ -87,6 +87,7 @@ aside header .bottom {
 aside header .bottom .settings-popup {
     display: flex;
     flex-direction: column;
+    display: none; /* have settings popup not display until settings button is clicked */
 }
 
 aside header .bottom .settings-popup .popup-box {

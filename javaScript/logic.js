@@ -24,9 +24,18 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 });
 
-
+let settingsRequested = true; // track settings popup state
 document.getElementById('settings-btn').addEventListener('click', function() {
-    alert("Settings clicked! Implement your settings menu here.");
+    //alert("Settings clicked! Implement your settings menu here.");
+    let settingsPopup = document.getElementsByClassName("settings-popup")[0];
+
+    if (settingsRequested) {
+        settingsPopup.style.display = "flex";
+    } else {
+        settingsPopup.style.display = "none";
+    }
+
+    settingsRequested = !settingsRequested;
 });
 
 document.querySelector(".profile-icon").addEventListener("click", function () {
