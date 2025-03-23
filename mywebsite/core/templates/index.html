@@ -1,0 +1,96 @@
+{% load static %}
+<!DOCTYPE html> 
+<html lang="en">  <!-- Fixed 'long' to 'lang' -->
+    <head>
+        <meta charset="UTF-8">  <!-- Fixed 'UTF,8' to 'UTF-8' -->
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">  <!-- Fixed 'viewpoint' to 'viewport' and 'inital' to 'initial' -->
+        <title>ChatRLB</title>
+
+        <!---Main CSS file-->
+        <link rel="stylesheet" href="{% static 'css/index.css' %}">
+        <!---FontAwesome ICON LIBARTY-->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+    </head>
+
+    <header>
+        <div class="logo-container">
+            <img src="{% static 'images/logo.png' %}" alt="ChatRLB Logo">
+        </div>
+
+        <div class="profile-icon">
+            <i class="fa-solid fa-user"></i>
+        </div>
+    </header>
+
+    <body>
+        <!-- Maximize button outside of the sidebar -->
+
+
+        <!-- Sidebar starts here-->
+        <aside>
+            <header>
+                <div class="action-btns">
+                    <button><i class="fa-solid fa-plus"></i> New Chat</button>
+                </div>
+                <p> History </p>
+                <hr>
+                <p> Start a new chat to begin...</p>
+
+                <div class="bottom">
+
+                    <!-- settings popup window section begins-->
+                    <div class="settings-popup">
+                        <div class="popup-box">
+                            <p> Customize chat appearance </p>
+                            <p>  </p>
+                        </div>
+                        <div class="popup-box">
+                            <p> Customize font size </p>
+                            <p>  </p>
+                        </div>
+                    </div>
+                    <!-- settings popup window section ends-->
+                     
+                    <div class="bottom-row">
+                        <i class="fa-regular fa-window-maximize" id="toggle-sidebar"></i>
+                        <button id="settings-btn">
+                            <i class="fa-solid fa-gear"></i>
+                        </button>
+                    </div>
+                </div>
+            </header>
+        </aside>
+        <!-- Sidebar ends here-->
+
+
+        <!--Main Section starts here-->
+
+        <main> 
+
+        <section id ='inner'>
+
+            <h2 class="logo"> Welcome to ChatRLB!</h2>
+
+            <div class="searchBox">
+                <form action="">
+                    <textarea name="search" id="search" rows="1" placeholder="What does Jesus say about..."></textarea>
+                    <button type="submit"><i class="fa-solid fa-paper-plane"></i></button>
+                </form>
+            </div>
+            
+        
+        </section>
+
+
+
+        </main>
+
+
+    <!--Main Section ends here-->
+
+        <!--Main JS File-->
+        <script src="{% static 'javascript/logic.js' %}"></script>
+
+    </body>
+</html>
