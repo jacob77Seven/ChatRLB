@@ -1,3 +1,4 @@
+
 let main = document.getElementsByTagName("main")[0];
 
 document.addEventListener("DOMContentLoaded", function() {
@@ -38,7 +39,4 @@ document.getElementById('settings-btn').addEventListener('click', function() {
     settingsRequested = !settingsRequested;
 });
 
-document.querySelector(".profile-icon").addEventListener("click", function () {
-    alert("Profile menu will be here!");
-});
 
