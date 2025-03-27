@@ -293,7 +293,7 @@ main #inner .searchBox form button{
     border: 1px solid var(--borderColor);
     border-radius: 5px;
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-    width: 50px;
+    width: 200px;
     z-index: 1000;
 }
 
@@ -304,23 +304,25 @@ main #inner .searchBox form button{
 }
 
 .profile-menu ul li {
-    /*padding: 1px;*/
+    border-bottom: 1px solid var(--borderColor);
     text-align: left;
 }
 
 .profile-menu ul li a {
-    font-size: 100px;
+    font-size: 14px;
     text-decoration: none;
     color: var(--headingColor);
     display: block;
-    padding: 4px;
+    width: 100%;
+    padding: 10px 15px;
     transition: background 0.3s ease-in-out;
+    box-sizing: border-box;
 }
 
 .profile-menu ul li a:hover {
     background-color: var(--mainColor);
     color: var(--headingColor);
-    font-size: 1px;
+
 }
 
 /* Show menu on hover */
