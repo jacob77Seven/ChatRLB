@@ -20,6 +20,7 @@
     --bodyBGColor: #343541;
     --BGColor: #40414F ;
     --borderColor: hsla(0,0%,100%,.2);
+    --box-height: 100vh;
 }
 body{
     background-color: var(--bodyBGColor);
@@ -176,14 +177,14 @@ aside header .bottom .bottom-row{
 /*MAIN CONTENT*/
 main{
     background-color: rgb(126, 114, 114);
-    height: 100vh;
+    height: var(--box-height); /* changed it to variable so you can manually set height with javascript */
     margin-left: 260px;
     transition: 0.3s;
 }
 
 main #inner{
      max-width: 800px;
-     height: 100vh;
+     height: calc(100%); /* this makes the height equal to 100% of the height of its parent element */
     margin: 0 auto;
     padding: 20px;
     position: relative;
@@ -198,7 +199,7 @@ main #inner{
 
 main #inner .logo{
     text-align:center;
-    position: absolute;
+    position: fixed; /* this makes the logo do thesame as the text */
     top: 120px;
     left: 0;
     right: 0;
