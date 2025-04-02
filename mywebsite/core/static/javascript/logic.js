@@ -32,18 +32,92 @@ let mainHeight = main.offsetHeight;
 let newMainHeight = mainHeight - logoHeight;
 main.style.setProperty('--box-height', newMainHeight + 'px');
 
+// settings button
+let settingsClicked = false; // track settings popup state
+let settingsBtn = document.getElementById('settings-btn');
 
-let settingsRequested = true; // track settings popup state
-document.getElementById('settings-btn').addEventListener('click', function() {
-    let settingsPopup = document.getElementsByClassName("settings-popup")[0];
-
-    if (settingsRequested) {
-        settingsPopup.style.display = "flex";
-    } else {
-        settingsPopup.style.display = "none";
-    }
-
-    settingsRequested = !settingsRequested;
+settingsBtn.addEventListener('mouseover', () => {
+    settingsBtn.style.backgroundColor = "var(--mainColor)";
+    //console.log("settings mouseover")
 });
 
+settingsBtn.addEventListener('mouseout', () => {
+    if (!settingsClicked) {
+        settingsBtn.style.backgroundColor = "var(--asideColor)";
+        //console.log("settings mouseout")
+    }
+});
 
+settingsBtn.addEventListener('click', function() {
+    settingsClicked = !settingsClicked;
+    let settingsPopup = document.getElementsByClassName("settings-popup")[0];
+
+    if (settingsClicked) {
+        settingsBtn.style.backgroundColor = "var(--mainColor)";
+        settingsPopup.style.opacity = "1";
+    } else {
+        settingsBtn.style.backgroundColor = "var(--asideColor)";
+        settingsPopup.style.opacity = "0";
+    }
+
+});
+
+// appearance button under settings
+let appearanceClicked = false;
+let appearanceBtn = document.getElementById('chat-appearance');
+appearanceBtn.addEventListener('mouseover', () => {
+    if (settingsClicked) {
+        appearanceBtn.style.backgroundColor = "var(--mainColor)";
+    }
+})
+
+appearanceBtn.addEventListener('mouseout', () => {
+    if (settingsClicked) {
+        if (!appearanceClicked) {
+            appearanceBtn.style.backgroundColor = "var(--asideColor)";
+        }
+    }
+})
+
+appearanceBtn.addEventListener('click', () => {
+    if (settingsClicked) {
+        appearanceClicked = !appearanceClicked;
+
+        if (appearanceClicked) {
+            appearanceBtn.style.backgroundColor = "var(--mainColor)";
+            // add menu display here
+        } else {
+            appearanceBtn.style.backgroundColor = "var(--asideColor)";
+        }
+    }
+})
+
+// font size button under settings
+let sizeClicked = false;
+let sizeBtn = document.getElementById('font-size');
+sizeBtn.addEventListener('mouseover', () => {
+    if (settingsClicked) {
+        sizeBtn.style.backgroundColor = "var(--mainColor)";
+    }
+})
+
+sizeBtn.addEventListener('mouseout', () => {
+    if (settingsClicked) {
+        if (!sizeClicked) {
+            sizeBtn.style.backgroundColor = "var(--asideColor)";
+        }
+    }
+})
+
+sizeBtn.addEventListener('click', () => {
+    if (settingsClicked) {
+        sizeClicked = !sizeClicked;
+
+        if (sizeClicked) {
+            sizeBtn.style.backgroundColor = "var(--mainColor)";
+            // add menu display here
+        } else {
+            sizeBtn.style.backgroundColor = "var(--asideColor)";
+        }
+    }
+})
