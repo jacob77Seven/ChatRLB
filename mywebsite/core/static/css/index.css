@@ -88,7 +88,8 @@ aside header .bottom {
 aside header .bottom .settings-popup {
     display: flex;
     flex-direction: column;
-    display: none; /* have settings popup not display until settings button is clicked */
+    opacity: 0; /* makes it invisible and you can use transition */
+    transition: opacity 150ms ease-in-out;
 }
 
 aside header .bottom .settings-popup .popup-box {
@@ -96,16 +97,13 @@ aside header .bottom .settings-popup .popup-box {
     justify-content: space-between;
     padding: 10px;
     border: 1px solid var(--borderColor);
+    cursor: pointer;
 }
 
 aside header .bottom .settings-popup .popup-box p {
     font-style: normal;
 }
 
-aside header .bottom .settings-popup .popup-box:hover {
-    background-color: var(--mainColor);
-    color: var(--headingColor);
-}
 /* settings popup section ends here */
 
 aside header .bottom .bottom-row{
