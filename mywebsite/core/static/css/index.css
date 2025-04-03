@@ -379,6 +379,8 @@ main #inner #appearance-popup {
     border: 1px solid var(--borderColor);
     width: 250px;
     background-color: var(--asideColor);
+    opacity: 0; /*make it invisible unless settings button, then chat appearance button is clicked */
+    pointer-events: none; /*makes it so that you can't still click on it if its invisible */
 }
 
 main #inner #appearance-popup .appearance-header {

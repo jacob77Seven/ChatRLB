@@ -65,6 +65,7 @@ settingsBtn.addEventListener('click', function() {
 // appearance button under settings
 let appearanceClicked = false;
 let appearanceBtn = document.getElementById('chat-appearance');
+let appearancePopup = document.getElementById("appearance-popup");
 appearanceBtn.addEventListener('mouseover', () => {
     if (settingsClicked) {
         appearanceBtn.style.backgroundColor = "var(--mainColor)";
@@ -86,10 +87,20 @@ appearanceBtn.addEventListener('click', () => {
         if (appearanceClicked) {
             appearanceBtn.style.backgroundColor = "var(--mainColor)";
             // add menu display here
+            appearancePopup.style.opacity = 1; // make appearance pop-up show up
+            appearancePopup.style.pointerEvents = "all"; // you can click on the buttons again
         } else {
             appearanceBtn.style.backgroundColor = "var(--asideColor)";
         }
     }
+})
+
+let closeAppearanceBtn = document.getElementById("close-appearance");
+closeAppearanceBtn.addEventListener('click', () => {
+    appearancePopup.style.opacity = 0; // make popup close
+    appearancePopup.style.pointerEvents = "none";
+    appearanceClicked = !(appearanceClicked); // unclick appearance button
+    appearanceBtn.style.backgroundColor = "var(--asideColor)"; 
 })
 
 // font size button under settings
