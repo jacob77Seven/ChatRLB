@@ -121,3 +121,40 @@ sizeBtn.addEventListener('click', () => {
         }
     }
 })
+
+document.addEventListener("DOMContentLoaded", function () {
+    const newChatButton = document.getElementById("new-chat-btn"); // Select button by ID
+    const chatContainer = document.getElementById("inner"); // Chat area
+
+    if (newChatButton) {
+        console.log(" New Chat button found!"); // Debugging
+
+        newChatButton.addEventListener("click", function () {
+            console.log(" New Chat button clicked!"); // Debugging when clicked
+
+            // Clear previous chat
+            chatContainer.innerHTML = "";
+
+            // Create new chat interface
+            const chatBox = document.createElement("div");
+            chatBox.classList.add("chat-box");
+
+            chatBox.innerHTML = `
+                <div class="chat-message bot">
+                    <p>Welcome! Start your conversation...</p>
+                </div>
+                <div class="searchBox">
+                    <form id="chat-form">
+                        <textarea id="chat-input" rows="1" placeholder="Type your message..."></textarea>
+                        <button type="submit"><i class="fa-solid fa-paper-plane"></i></button>
+                    </form>
+                </div>
+            `;
+
+            chatContainer.appendChild(chatBox); // Add to main chat area
+            document.getElementById("chat-input").focus(); // Focus on input
+        });
+    } else {
+        console.log(" New Chat button NOT found!");
+    }
+});
