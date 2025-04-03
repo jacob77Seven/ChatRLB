@@ -13,8 +13,10 @@
 
 /*CHATRLB COLORS*/
 :root{
-    --mainColor: #19C37D ;
-    --textColor: rgb(209, 213, 219);
+    --mainColor: pink;
+    /*--mainColor: #19C37D ;*/
+    --textColor: pink;
+   /* --textColor: rgb(209, 213, 219);*/
     --headingColor: rgb(255, 255, 255) ;
     --asideColor: #202123;
     --bodyBGColor: #343541;
