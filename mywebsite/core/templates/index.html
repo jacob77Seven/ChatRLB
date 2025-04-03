@@ -84,6 +84,27 @@
 
             <h2 class="logo"> Welcome to ChatRLB!</h2>
 
+            <section id="appearance-popup">
+                <div class="appearance-header">
+                    <p>Chat Appearance</p>
+                    <button id="close-appearance">&#10005;</button>
+                </div>
+                <form id="appearance-menu" action="">
+                    <div class="appearance-opt-sect">
+                        <input type="radio" name="mode" id="light-mode" class="toggle-appearance" value="light-mode" checked>
+                        <label for="light-mode">Light mode</label>
+                    </div>
+                    <div class="appearance-opt-sect">
+                        <input type="radio" name="mode" id="dark-mode" class="toggle-appearance" value="dark-mode">
+                        <label for="dark-mode">Dark mode</label>
+                    </div>
+                    <div class="appearance-opt-sect">
+                        <input type="radio" name="mode" id="high-contrast-mode" class="toggle-appearance" value="high-contrast-mode">
+                        <label for="high-contrast-mode">High contrast</label>
+                    </div>
+                </form>
+            </section>
+
             <div class="searchBox">
                 <form action="">
                     <textarea name="search" id="search" rows="1" placeholder="What does Jesus say about..."></textarea>
