@@ -189,3 +189,60 @@ document.addEventListener("DOMContentLoaded", function () {
         console.log(" New Chat button NOT found!");
     }
 });
+
+document.addEventListener("DOMContentLoaded", function () {
+    const chatContainer = document.getElementById("chat-messages"); // Where messages go
+    const chatForm = document.getElementById("chat-form");           // The chat form
+    const chatInput = document.getElementById("chat-input");         // Text input
+
+    // Submit event for the chat form
+    chatForm.addEventListener("submit", async function (e) {
+        e.preventDefault(); // Prevent page reload
+
+        const message = chatInput.value.trim(); // Get user message
+        if (!message) return;
+
+        appendMessage("user", message); // Show user message
+        chatInput.value = ""; // Clear input
+
+        try {
+            const response = await fetch("/chatbot/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCSRFToken() // CSRF token for Django
+                },
+                body: JSON.stringify({ message: message })
+            });
+
+            const data = await response.json();
+            appendMessage("bot", data.reply || "No response");
+        } catch (err) {
+            appendMessage("bot", "⚠️ Error: Could not contact server.");
+        }
+    });
+
+    // Append message to chat box
+    function appendMessage(sender, text) {
+        const msg = document.createElement("div");
+        msg.classList.add("chat-message", sender); // user or bot
+        msg.innerHTML = `<p>${text}</p>`;
+        chatContainer.appendChild(msg);
+        chatContainer.scrollTop = chatContainer.scrollHeight; // Auto-scroll
+    }
+
+    // Read CSRF token from cookies (for Django security)
+    function getCSRFToken() {
+        let cookieValue = null;
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            const trimmed = cookie.trim();
+            if (trimmed.startsWith("csrftoken=")) {
+                cookieValue = trimmed.substring("csrftoken=".length);
+                break;
+            }
+        }
+        return cookieValue;
+    }
+});
+

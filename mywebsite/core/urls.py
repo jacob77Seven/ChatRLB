@@ -1,6 +1,9 @@
 from django.urls import path
-from .views import index
+from .views import chat_page, chatbot_reply
+from . import views
+
 
 urlpatterns = [
-    path('', index, name='index'),  # This defines what to do at '/'
+    path('', chat_page, name='chat_page'),
+    path('chatbot/', views.chatbot_reply, name='chatbot'),
 ]

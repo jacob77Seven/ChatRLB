@@ -105,13 +105,18 @@
                 </form>
             </section>
 
+            <div id="chat-messages" class="chat-messages"></div>
+
             <div class="searchBox">
-                <form action="">
-                    <textarea name="search" id="search" rows="1" placeholder="What does Jesus say about..."></textarea>
+                <form id="chat-form" method="POST">
+                    {% csrf_token %}  
+                    <textarea id="chat-input" rows="1" placeholder="What does Jesus say about..."></textarea>
                     <button type="submit"><i class="fa-solid fa-paper-plane"></i></button>
                 </form>
             </div>
-            
+
+
+     
         
         </section>
 
