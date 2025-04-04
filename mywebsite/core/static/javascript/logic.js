@@ -103,6 +103,26 @@ closeAppearanceBtn.addEventListener('click', () => {
     appearanceBtn.style.backgroundColor = "var(--asideColor)"; 
 })
 
+// dark mode
+let darkModeBox = document.getElementById("dark-mode");
+let lightModeBox = document.getElementById("light-mode");
+let root = document.querySelector(':root');
+darkModeBox.addEventListener("change", () => {
+    if (darkModeBox.checked) {
+        console.log("dark mode checked");
+        root.style.setProperty('--interfaceColor', 'grey');
+        let rs = getComputedStyle(root);
+        console.log(rs.getPropertyValue('--interfaceColor'));
+    }
+})
+
+lightModeBox.addEventListener("change", () => {
+    if (lightModeBox.checked) {
+        console.log("light mode checked");
+        root.style.setProperty('--interfaceColor', 'rgb(126,114,114)');
+    }
+})
+
 // font size button under settings
 let sizeClicked = false;
 let sizeBtn = document.getElementById('font-size');

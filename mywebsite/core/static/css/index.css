@@ -22,6 +22,7 @@
     --bodyBGColor: #343541;
     --BGColor: #40414F ;
     --borderColor: hsla(0,0%,100%,.2);
+    --interfaceColor: rgb(126,114,114);
     --box-height: 100vh;
 }
 body{
@@ -176,7 +177,8 @@ aside header .bottom .bottom-row{
 }
 /*MAIN CONTENT*/
 main{
-    background-color: rgb(126, 114, 114);
+    /*background-color: rgb(126, 114, 114);*/
+    background-color: var(--interfaceColor);
     height: var(--box-height); /* changed it to variable so you can manually set height with javascript */
     margin-left: 260px;
     transition: 0.3s;
@@ -193,6 +195,7 @@ main #inner{
     justify-content: flex-end;
     align-items: center;
     overflow: hidden;
+    background-color: var(--interfaceColor);
 
 }
 
