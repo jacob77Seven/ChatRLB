@@ -1,6 +1,6 @@
 /* google fonts*/
 
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,100..1000;1,100..1000&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
 
 /*CSS Reset*/
 
@@ -8,27 +8,25 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Poppins', sans-serif;  
 }
 
 /*CHATRLB COLORS*/
 
-/* 
-  Ivory: #f6f7eb
-  Celestial Blue: #159ff4 
-  Auburn: #b5192b
-  Gray: #808080
-  Black: #000000
 
-*/
 :root{
-    --mainColor: #19C37D ;
-    --textColor: rgb(209, 213, 219);
-    --headingColor: rgb(255, 255, 255) ;
-    --asideColor: #202123;
-    --bodyBGColor: #343541;
-    --BGColor: #40414F ;
-    --borderColor: hsla(0,0%,100%,.2);
+
+    --brand-red: #a6101f;
+    --brand-blue: #4b9696; 
+    --brand-tan: #f9f0d8;
+
+    --mainColor: var(--brand-blue); ;
+    --textColor: #1a1a1a; 
+    --headingColor: #000000 ;
+    --asideColor: #d4c6b4;
+    --bodyBGColor: var(--brand-tan);    
+    --BGColor: #ffffff ;
+    --borderColor: rgba(0, 0, 0, 0.2);
     /*--interfaceColor: rgb(126,114,114);*/
     --interfaceColor: rgb(255, 255, 255);
     --box-height: 100vh;
@@ -37,6 +35,8 @@ body{
     background-color: var(--bodyBGColor);
     color: var(--textColor);
 }
+
+
 
 aside{
     width: 260px;
@@ -73,7 +73,7 @@ aside header .action-btns{
 aside header .action-btns button{
     width: 250px;
     padding: 11px 15px;
-    background: none;
+    background: #f0f0f0;
     border: 1px solid var(--borderColor);
     color: var(--headingColor);
     border-radius: 5px;
@@ -136,7 +136,7 @@ aside header .bottom .bottom-row{
     color: var(--headingColor);
     border: 1px solid var(--borderColor);
     border-radius: 5px;
-    background-color: var(--asideColor);
+    background-color: #f0f0f0;
     cursor: pointer;
     transition: left 0.3s ease-in-out, bottom 0.3s ease-in-out;
     z-index: 1;
@@ -164,9 +164,9 @@ aside header .bottom .bottom-row{
     color: var(--headingColor);
     border: 1px solid var(--borderColor);
     border-radius: 5px;
-    background-color: var(--asideColor);
+    background-color: #f0f0f0;
     cursor: pointer;
-    transition: left 0.3s ease-in-out, color 0.3s ease-in-out;
+    transition: background-color 0.3s ease-in-out, left 0.3s ease-in-out, color 0.3s ease-in-out;
     display: flex;
     justify-content: center;
     align-items: center; 
@@ -217,7 +217,7 @@ main #inner .logo{
     bottom: 200px;
     font-size: 25px;
     font-weight: 7s;
-    color: rgb(104, 94, 94);
+    color: var(--brand-red);
 }
 
 main #inner .searchBox{
@@ -227,7 +227,7 @@ main #inner .searchBox{
 
 main #inner .searchBox form{
     padding: 1rem;
-    background-color: var(--BGColor);
+    background-color:#d4c6b4;
     border-radius: 7px;
     display: flex;
     justify-content: space-between;
@@ -242,7 +242,7 @@ main #inner .searchBox form textarea{
     border: none;
     resize: none;
     outline: none;
-    color: var(--headingColor);
+    color: var(--brand-red);
     font-size: 16px;
     font-weight: 400;
     line-height: 24px;
@@ -263,7 +263,7 @@ main #inner .searchBox form button{
     justify-content: center;
     align-items: center;
     padding: 8px;
-    background-color: rgb(104, 94, 94);
+    background-color: #d4c6b4;
     transition: all 0.3s ease-in-out;
 }
 
@@ -407,7 +407,7 @@ main #inner #appearance-popup .appearance-header #close-appearance {
     background: none;
     border: none;
     border: 1px solid var(--borderColor);
-    color: var(--headingColor);
+    color: #f0f0f0;
     cursor: pointer;
     font-weight: bold;
     padding: 0 5px;
@@ -415,8 +415,8 @@ main #inner #appearance-popup .appearance-header #close-appearance {
 }
 
 main #inner #appearance-popup .appearance-header #close-appearance:hover {
-    background-color: var(--mainColor);
-    color: var(--headingColor);
+    background-color: #f0f0f0;
+    color: #f0f0f0;
 }
 
 input[type="radio"].toggle-appearance {
@@ -500,13 +500,13 @@ input[type="radio"].toggle-appearance:checked + label::before {
 
 .chat-message.user {
     align-self: flex-end;
-    background-color: #19C37D;
+    background-color: var(--brand-red);
     color: white;
 }
 
 .chat-message.bot {
     align-self: flex-start;
-    background-color: #40414F;
+    background-color: var(--brand-blue);
     color: white;
 }
 
@@ -540,7 +540,7 @@ input[type="radio"].toggle-appearance:checked + label::before {
   /* User (right-aligned, green) */
   .chat-message.user {
     align-self: flex-end;
-    background-color: #19C37D;
+    background-color: var(--brand-red);
     color: white;
     text-align: right;
   }
@@ -548,7 +548,7 @@ input[type="radio"].toggle-appearance:checked + label::before {
   /* Bot (left-aligned, gray) */
   .chat-message.bot {
     align-self: flex-start;
-    background-color: #40414F;
+    background-color: var(--brand-blue);
     color: white;
     text-align: left;
   }
