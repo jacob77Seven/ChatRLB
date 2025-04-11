@@ -29,7 +29,8 @@
     --bodyBGColor: #343541;
     --BGColor: #40414F ;
     --borderColor: hsla(0,0%,100%,.2);
-    --interfaceColor: rgb(126,114,114);
+    /*--interfaceColor: rgb(126,114,114);*/
+    --interfaceColor: rgb(255, 255, 255);
     --box-height: 100vh;
 }
 body{

@@ -1,5 +1,6 @@
 
 let main = document.getElementsByTagName("main")[0];
+let body = document.getElementsByTagName("body")[0];
 
 document.addEventListener("DOMContentLoaded", function() {
     let aside = document.getElementsByTagName("aside")[0];
@@ -87,6 +88,7 @@ appearanceBtn.addEventListener('click', () => {
         if (appearanceClicked) {
             appearanceBtn.style.backgroundColor = "var(--mainColor)";
             // add menu display here
+            body.style.pointerEvents = "none"; // you cant click on anything else until you click the x button
             appearancePopup.style.opacity = 1; // make appearance pop-up show up
             appearancePopup.style.pointerEvents = "all"; // you can click on the buttons again
         } else {
@@ -98,6 +100,7 @@ appearanceBtn.addEventListener('click', () => {
 let closeAppearanceBtn = document.getElementById("close-appearance");
 closeAppearanceBtn.addEventListener('click', () => {
     appearancePopup.style.opacity = 0; // make popup close
+    body.style.pointerEvents="all"; // now you can click on everything again
     appearancePopup.style.pointerEvents = "none";
     appearanceClicked = !(appearanceClicked); // unclick appearance button
     appearanceBtn.style.backgroundColor = "var(--asideColor)"; 
@@ -106,20 +109,24 @@ closeAppearanceBtn.addEventListener('click', () => {
 // dark mode
 let darkModeBox = document.getElementById("dark-mode");
 let lightModeBox = document.getElementById("light-mode");
+let contrastModeBox = document.getElementById("high-contrast-mode");
 let root = document.querySelector(':root');
 darkModeBox.addEventListener("change", () => {
     if (darkModeBox.checked) {
-        console.log("dark mode checked");
-        root.style.setProperty('--interfaceColor', 'grey');
-        let rs = getComputedStyle(root);
-        console.log(rs.getPropertyValue('--interfaceColor'));
+        root.style.setProperty('--interfaceColor', '#343541');
     }
 })
 
 lightModeBox.addEventListener("change", () => {
     if (lightModeBox.checked) {
-        console.log("light mode checked");
-        root.style.setProperty('--interfaceColor', 'rgb(126,114,114)');
+        //root.style.setProperty('--interfaceColor', 'rgb(126,114,114)');
+        root.style.setProperty('--interfaceColor', 'rgb(255,255,255)');
+    }
+})
+
+contrastModeBox.addEventListener("change", () => {
+    if (contrastModeBox.checked) {
+        root.style.setProperty('--interfaceColor', 'black');
     }
 })
 
