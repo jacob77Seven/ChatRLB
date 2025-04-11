@@ -171,16 +171,17 @@ document.addEventListener("DOMContentLoaded", function () {
             chatBox.classList.add("chat-box");
 
             chatBox.innerHTML = `
-                <div class="chat-message bot">
+                <div class="new-chat-message">
                     <p>Welcome! Start your conversation...</p>
                 </div>
                 <div class="searchBox">
                     <form id="chat-form">
-                        <textarea id="chat-input" rows="1" placeholder="Type your message..."></textarea>
+                        <textarea id="chat-input" rows="1" placeholder="What does Jesus say about..."></textarea>
                         <button type="submit"><i class="fa-solid fa-paper-plane"></i></button>
                     </form>
                 </div>
             `;
+            chatBox.style.width = "100%"; // this sets the width of the chatbox to the size of #inner block
 
             chatContainer.appendChild(chatBox); // Add to main chat area
             document.getElementById("chat-input").focus(); // Focus on input
