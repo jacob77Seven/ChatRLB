@@ -27,11 +27,11 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 // set main height here
-let logo = document.getElementsByClassName("logo-container")[0];
-const logoHeight = logo.offsetHeight;
-let mainHeight = main.offsetHeight;
-let newMainHeight = mainHeight - logoHeight;
-main.style.setProperty('--box-height', newMainHeight + 'px');
+//let logo = document.getElementsByClassName("logo-container")[0];
+//const logoHeight = logo.offsetHeight;
+//let mainHeight = main.offsetHeight;
+//let newMainHeight = mainHeight - logoHeight;
+//main.style.setProperty('--box-height', newMainHeight + 'px');
 
 // settings button
 let settingsClicked = false; // track settings popup state

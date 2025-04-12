@@ -34,6 +34,14 @@
 body{
     background-color: var(--bodyBGColor);
     color: var(--textColor);
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+html{
+    height: 100%;
 }
 
 
@@ -188,22 +196,27 @@ aside header .bottom .bottom-row{
 main{
     /*background-color: rgb(126, 114, 114);*/
     background-color: var(--interfaceColor);
-    height: var(--box-height); /* changed it to variable so you can manually set height with javascript */
+    flex: 1;
+    /*height: var(--box-height); /* changed it to variable so you can manually set height with javascript */
     margin-left: 260px;
     transition: 0.3s;
+    display: flex;
+    flex-direction: column;
 }
 
 main #inner{
      max-width: 800px;
-     height: calc(100%); /* this makes the height equal to 100% of the height of its parent element */
+    /*height: calc(100%); /* this makes the height equal to 100% of the height of its parent element */
     margin: 0 auto;
     padding: 20px;
-    position: relative;
+    display: flex;
+    /*position: relative;*/
     display: flex;
     flex-direction: column;
-    justify-content: flex-end;
+    width: 100%;
+    /*justify-content: flex-end;
     align-items: center;
-    overflow: hidden;
+    overflow: hidden;*/
     background-color: var(--interfaceColor);
 
 }
@@ -223,6 +236,7 @@ main #inner .logo{
 
 main #inner .searchBox{
     width: 100%;
+    margin-top: 10px;
     
 }
 
@@ -487,7 +501,7 @@ input[type="radio"].toggle-appearance:checked + label::before {
     height: 70vh;
     overflow-y: auto;
     padding: 10px;
-    width: 100%; /* makes it the width of the #inner element */
+    /*width: 100%; /* makes it the width of the #inner element */
 }
 
 /* Bubbles */
