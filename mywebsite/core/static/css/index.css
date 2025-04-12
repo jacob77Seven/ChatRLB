@@ -572,4 +572,68 @@ input[type="radio"].toggle-appearance:checked + label::before {
     color: white;
     text-align: left;
   }
-  
+   /* about RLB */
+
+ /* Overlay + Centered Popup */
+.popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.6); /* Dark fade background */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+/* Hide popup initially */
+.hidden {
+    display: none;
+}
+
+/* Popup Content */
+.popup-content {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 700px;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+    font-family: Arial, sans-serif;
+    color: #000;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* Close Button */
+.popup-close {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #999;
+    cursor: pointer;
+}
+
+.popup-close:hover {
+    color: #000;
+}
+
+/* Title */
+.popup-content h2 {
+    font-size: 28px;
+    font-weight: bold;
+    color: #000;
+    margin-bottom: 20px;
+}
+
+/* Paragraphs */
+.popup-content p {
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
