@@ -16,7 +16,7 @@ class ModelManager:
             model='gemma3:1b',
             messages=self.messages,
             stream=False,
-            options={"num_predict":100}
+            options={"num_predict":500}
         )
         self.messages += [{'role': 'assistant', 'content': newMessage.message.content}]
         return newMessage.message.content
