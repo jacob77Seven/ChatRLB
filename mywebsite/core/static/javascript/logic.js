@@ -254,3 +254,25 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
+//about RLB button
+document.addEventListener('DOMContentLoaded', function () {
+    const aboutLink = document.getElementById('about-link');
+    const popup = document.getElementById('aboutPopup');
+    const closePopup = document.getElementById('popup-close');
+
+    aboutLink.addEventListener('click', function (e) {
+        e.preventDefault(); // Prevent link jump
+        popup.classList.remove('hidden'); // Show popup
+    });
+
+    closePopup.addEventListener('click', function () {
+        popup.classList.add('hidden'); // Hide popup
+    });
+
+    // Optional: Close if click outside popup content
+    window.addEventListener('click', function (e) {
+        if (e.target === popup) {
+            popup.classList.add('hidden');
+        }
+    });
+});
