@@ -19,6 +19,7 @@
     --brand-red: #a6101f;
     --brand-blue: #4b9696; 
     --brand-tan: #f9f0d8;
+    
 
     --mainColor: var(--brand-blue); ;
     --textColor: #1a1a1a; 
@@ -273,6 +274,10 @@ main #inner .searchBox form button{
     transition: 0.2s;
 }
 
+main #inner .searchBox form button:hover{
+    background-color: #357373;
+    color: var(--headingColor);
+}
 .logo-container {
     display: flex;
     justify-content: center;
