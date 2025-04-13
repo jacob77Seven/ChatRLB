@@ -232,6 +232,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Append message to chat box
     function appendMessage(sender, text) {
+        const welcome = document.querySelector(".logo");
+        if (welcome) welcome.style.display = "none";
+    
         const msg = document.createElement("div");
         msg.classList.add("chat-message", sender); // user or bot
         msg.innerHTML = `<p>${text}</p>`;
@@ -254,3 +257,18 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
+document.addEventListener("DOMContentLoaded", function () {
+    const welcomeText = document.getElementById("welcome-text");
+    const message = "Welcome to ChatRLB!";
+    let index = 0;
+
+    function typeNextChar() {
+        if (index < message.length) {
+            welcomeText.textContent += message.charAt(index);
+            index++;
+            setTimeout(typeNextChar, 75); // Speed in ms
+        }
+    }
+
+    typeNextChar();
+});
