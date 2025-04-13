@@ -44,7 +44,7 @@ settingsBtn.addEventListener('mouseover', () => {
 
 settingsBtn.addEventListener('mouseout', () => {
     if (!settingsClicked) {
-        settingsBtn.style.backgroundColor = "var(--asideColor)";
+        settingsBtn.style.backgroundColor = "#f0f0f0";
         //console.log("settings mouseout")
     }
 });
@@ -57,7 +57,7 @@ settingsBtn.addEventListener('click', function() {
         settingsBtn.style.backgroundColor = "var(--mainColor)";
         settingsPopup.style.opacity = "1";
     } else {
-        settingsBtn.style.backgroundColor = "var(--asideColor)";
+        settingsBtn.style.backgroundColor = "#f0f0f0";
         settingsPopup.style.opacity = "0";
     }
 
@@ -76,7 +76,7 @@ appearanceBtn.addEventListener('mouseover', () => {
 appearanceBtn.addEventListener('mouseout', () => {
     if (settingsClicked) {
         if (!appearanceClicked) {
-            appearanceBtn.style.backgroundColor = "var(--asideColor)";
+            appearanceBtn.style.backgroundColor = "#f0f0f0";
         }
     }
 })
@@ -92,7 +92,7 @@ appearanceBtn.addEventListener('click', () => {
             appearancePopup.style.opacity = 1; // make appearance pop-up show up
             appearancePopup.style.pointerEvents = "all"; // you can click on the buttons again
         } else {
-            appearanceBtn.style.backgroundColor = "var(--asideColor)";
+            appearanceBtn.style.backgroundColor = "#f0f0f0";
         }
     }
 })
@@ -103,7 +103,7 @@ closeAppearanceBtn.addEventListener('click', () => {
     body.style.pointerEvents="all"; // now you can click on everything again
     appearancePopup.style.pointerEvents = "none";
     appearanceClicked = !(appearanceClicked); // unclick appearance button
-    appearanceBtn.style.backgroundColor = "var(--asideColor)"; 
+    appearanceBtn.style.backgroundColor = "#f0f0f0"; 
 })
 
 // dark mode
@@ -111,9 +111,15 @@ let darkModeBox = document.getElementById("dark-mode");
 let lightModeBox = document.getElementById("light-mode");
 let contrastModeBox = document.getElementById("high-contrast-mode");
 let root = document.querySelector(':root');
+let aside2 = document.getElementsByTagName("aside")[0];
+
 darkModeBox.addEventListener("change", () => {
     if (darkModeBox.checked) {
         root.style.setProperty('--interfaceColor', '#343541');
+        root.style.setProperty('--asideColor', '#202123');
+        root.style.setProperty('--textColor', 'rgb(209, 213, 219)');
+        root.style.setProperty('--borderColor', 'hsla(0,0%,100%,.2)');
+        aside2.borderRight = 'none';
     }
 })
 
@@ -121,12 +127,20 @@ lightModeBox.addEventListener("change", () => {
     if (lightModeBox.checked) {
         //root.style.setProperty('--interfaceColor', 'rgb(126,114,114)');
         root.style.setProperty('--interfaceColor', 'rgb(255,255,255)');
+        root.style.setProperty('--asideColor', '#d4c6b4');
+        root.style.setProperty('--textColor', '#1a1a1a');
+        root.style.setProperty('--borderColor', 'rgba(0,0,0,0.2)');
+        aside2.style.borderRight = 'none';
     }
 })
 
 contrastModeBox.addEventListener("change", () => {
     if (contrastModeBox.checked) {
         root.style.setProperty('--interfaceColor', 'black');
+        root.style.setProperty('--asideColor', 'black');
+        root.style.setProperty('--textColor', 'yellow');
+        root.style.setProperty('--borderColor', 'white');
+        aside2.style.borderRight = "1px solid var(--borderColor)";
     }
 })
 
@@ -142,7 +156,7 @@ sizeBtn.addEventListener('mouseover', () => {
 sizeBtn.addEventListener('mouseout', () => {
     if (settingsClicked) {
         if (!sizeClicked) {
-            sizeBtn.style.backgroundColor = "var(--asideColor)";
+            sizeBtn.style.backgroundColor = "#f0f0f0";
         }
     }
 })
@@ -155,7 +169,7 @@ sizeBtn.addEventListener('click', () => {
             sizeBtn.style.backgroundColor = "var(--mainColor)";
             // add menu display here
         } else {
-            sizeBtn.style.backgroundColor = "var(--asideColor)";
+            sizeBtn.style.backgroundColor = "#f0f0f0";
         }
     }
 })
