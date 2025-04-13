@@ -257,6 +257,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
+<<<<<<< HEAD
 document.addEventListener("DOMContentLoaded", function () {
     const welcomeText = document.getElementById("welcome-text");
     const message = "Welcome to ChatRLB!";
@@ -271,4 +272,27 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     typeNextChar();
+=======
+//about RLB button
+document.addEventListener('DOMContentLoaded', function () {
+    const aboutLink = document.getElementById('about-link');
+    const popup = document.getElementById('aboutPopup');
+    const closePopup = document.getElementById('popup-close');
+
+    aboutLink.addEventListener('click', function (e) {
+        e.preventDefault(); // Prevent link jump
+        popup.classList.remove('hidden'); // Show popup
+    });
+
+    closePopup.addEventListener('click', function () {
+        popup.classList.add('hidden'); // Hide popup
+    });
+
+    // Optional: Close if click outside popup content
+    window.addEventListener('click', function (e) {
+        if (e.target === popup) {
+            popup.classList.add('hidden');
+        }
+    });
+>>>>>>> c27bd1ed6431df4eaa3e9105f1d713d4d8d68dbd
 });
