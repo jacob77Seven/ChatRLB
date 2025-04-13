@@ -119,6 +119,7 @@ aside header .bottom .settings-popup .popup-box {
     border: 1px solid var(--borderColor);
     cursor: pointer;
     background-color: #f0f0f0;
+    color: var(--headingColor);
 }
 
 aside header .bottom .settings-popup .popup-box p {
@@ -227,7 +228,7 @@ main #inner{
 
 main #inner .searchBox{
     width: 100%;
-    margin-top: 10px;
+    margin-top: 50px;
     
 }
 
@@ -417,7 +418,7 @@ main #inner #appearance-popup .appearance-header #close-appearance {
     background: none;
     border: none;
     border: 1px solid var(--borderColor);
-    color: #f0f0f0;
+    color: var(--textColor);
     cursor: pointer;
     font-weight: bold;
     padding: 0 5px;
@@ -425,8 +426,8 @@ main #inner #appearance-popup .appearance-header #close-appearance {
 }
 
 main #inner #appearance-popup .appearance-header #close-appearance:hover {
-    background-color: #f0f0f0;
-    color: #f0f0f0;
+    background-color: var(--mainColor);
+    color: var(--textColor);
 }
 
 input[type="radio"].toggle-appearance {
