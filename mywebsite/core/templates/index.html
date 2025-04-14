@@ -17,7 +17,7 @@
 
     <header>
         <div class="logo-container">
-            <img src="{% static 'images/logo.png' %}" alt="ChatRLB Logo">
+            <img src="{% static 'images/RLB Horizontal helping - Banner.png' %}" alt="ChatRLB Logo">
         </div>
 
         <div class="profile-icon">
@@ -28,7 +28,7 @@
             <ul>
                 <li><a href="#">Sign In</a></li>
                 <li><a href="#">Create Account</a></li>
-                <li><a href="#">About Red Letter Basics</a></li>
+                <li><a href="#" id="about-link">About Red Letter Basics</a></li>
                 <li><a href="#">Leave Us Feedback</a></li>
             </ul>
         </div> 
@@ -43,7 +43,7 @@
         <aside>
             <header>
                 <div class="action-btns">
-                    <button><i class="fa-solid fa-plus"></i> New Chat</button>
+                    <button id="new-chat-btn"><i class="fa-solid fa-plus"></i> New Chat</button>
                 </div>
                 <p> History </p>
                 <hr>
@@ -53,11 +53,11 @@
 
                     <!-- settings popup window section begins-->
                     <div class="settings-popup">
-                        <div class="popup-box">
+                        <div class="popup-box" id="chat-appearance">
                             <p> Customize chat appearance </p>
                             <p>  </p>
                         </div>
-                        <div class="popup-box">
+                        <div class="popup-box" id="font-size">
                             <p> Customize font size </p>
                             <p>  </p>
                         </div>
@@ -84,13 +84,39 @@
 
             <h2 class="logo"> Welcome to ChatRLB!</h2>
 
+            <section id="appearance-popup">
+                <div class="appearance-header">
+                    <p>Chat Appearance</p>
+                    <button id="close-appearance">&#10005;</button>
+                </div>
+                <form id="appearance-menu" action="">
+                    <div class="appearance-opt-sect">
+                        <input type="radio" name="mode" id="light-mode" class="toggle-appearance" value="light-mode" checked>
+                        <label for="light-mode">Light mode</label>
+                    </div>
+                    <div class="appearance-opt-sect">
+                        <input type="radio" name="mode" id="dark-mode" class="toggle-appearance" value="dark-mode">
+                        <label for="dark-mode">Dark mode</label>
+                    </div>
+                    <div class="appearance-opt-sect">
+                        <input type="radio" name="mode" id="high-contrast-mode" class="toggle-appearance" value="high-contrast-mode">
+                        <label for="high-contrast-mode">High contrast</label>
+                    </div>
+                </form>
+            </section>
+
+            <div id="chat-messages" class="chat-messages"></div>
+
             <div class="searchBox">
-                <form action="">
-                    <textarea name="search" id="search" rows="1" placeholder="What does Jesus say about..."></textarea>
+                <form id="chat-form" method="POST">
+                    {% csrf_token %}  
+                    <textarea id="chat-input" rows="1" placeholder="What does Jesus say about..."></textarea>
                     <button type="submit"><i class="fa-solid fa-paper-plane"></i></button>
                 </form>
             </div>
-            
+
+
+     
         
         </section>
 
@@ -100,10 +126,37 @@
 
 
     <!--Main Section ends here-->
+        
+<!-- Centered About RLB Popup -->
+<div id="aboutPopup" class="popup hidden">
+    <div class="popup-content">
+        <span id="popup-close" class="popup-close">&times;</span>
+        <h2>About Red Letter Basics</h2>
+        <p>
+            Many Christians struggle to read and understand the Bible, even those who have been in the church for years. Research shows that while most believers acknowledge the Bible as God’s Word, they often feel unequipped to study it effectively. Without a clear understanding of Scripture, spiritual growth stalls, and many drift away from their relationship with Jesus.
+        </p>
+        <p>
+            At Red Letter Basics, we believe the solution isn’t just more reading plans or resources—it’s teaching people <strong>how</strong> to engage with Scripture in a way that brings clarity and confidence.
+        </p>
+        <p>
+            Our approach is simple: start with the words of Jesus. Just as someone learning to cook doesn’t need to attend culinary school, understanding the Bible doesn’t require a seminary degree. With the right foundation, anyone can grow in their faith and grasp the truth of God’s Word.
+        </p>
+        <p>
+            <strong>Our Mission:</strong> To help people <strong>know and listen to Jesus</strong> by equipping them with tools that make the Bible understandable and transformative.
+        </p>
+        <p>
+            <strong>Our Vision:</strong> A world where every believer can open the Bible, read the words of Jesus, and understand His truth with confidence.
+        </p>
+        <p>
+            Whether you're an individual, a family, or a church, Red Letter Basics is here to help you grow in your faith and deepen your relationship with Jesus.
+        </p>
+    </div>
+</div>
 
         <!--Main JS File-->
         <!--script src="{% static 'javascript/logic.js' %}?v=2"></!--script-->
         <script src="{% static 'javascript/logic.js' %}?v={{ cache_bust }}"></script>
+
 
     </body>
 </html>
