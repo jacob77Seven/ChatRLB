@@ -224,21 +224,11 @@ main #inner{
 }
 
 
-main #inner .logo{
-    text-align:center;
-    position: fixed; /* this makes the logo do thesame as the text */
-    top: 120px;
-    left: 0;
-    right: 0;
-    bottom: 200px;
-    font-size: 25px;
-    font-weight: 7s;
-    color: var(--brand-red);
-}
+
 
 main #inner .searchBox{
     width: 100%;
-    margin-top: 10px;
+    margin-top: 50px;
     
 }
 
@@ -573,6 +563,30 @@ input[type="radio"].toggle-appearance:checked + label::before {
     color: white;
     text-align: left;
   }
+<<<<<<< HEAD
+  
+  #welcome-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        font-size: 25px;
+        font-weight: 700;
+        color: var(--brand-red);
+        white-space: nowrap;
+        overflow: hidden;
+        border-right: 2px solid var(--brand-red);
+        animation: blink-caret 0.75s step-end infinite;
+        z-index: 1;
+    
+    
+}
+
+@keyframes blink-caret {
+    from, to { border-color: transparent; }
+    50% { border-color: var(--brand-red); }
+=======
    /* about RLB */
 
  /* Overlay + Centered Popup */
@@ -637,4 +651,5 @@ input[type="radio"].toggle-appearance:checked + label::before {
     font-size: 16px;
     line-height: 1.6;
     margin-bottom: 15px;
+>>>>>>> c27bd1ed6431df4eaa3e9105f1d713d4d8d68dbd
 }
