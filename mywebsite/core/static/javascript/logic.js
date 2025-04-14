@@ -246,7 +246,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Append message to chat box
     function appendMessage(sender, text) {
-        const welcome = document.querySelector(".logo");
+        const welcome = document.querySelector("welcome-text");
         if (welcome) welcome.style.display = "none";
     
         const msg = document.createElement("div");
@@ -286,3 +286,4 @@ document.addEventListener("DOMContentLoaded", function () {
 
     typeNextChar();
 });
+
