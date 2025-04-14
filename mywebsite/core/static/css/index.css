@@ -1,6 +1,6 @@
 /* google fonts*/
 
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,100..1000;1,100..1000&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
 
 /*CSS Reset*/
 
@@ -8,23 +8,44 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Poppins', sans-serif;  
 }
 
 /*CHATRLB COLORS*/
+
+
 :root{
-    --mainColor: #19C37D ;
-    --textColor: rgb(209, 213, 219);
-    --headingColor: rgb(255, 255, 255) ;
-    --asideColor: #202123;
-    --bodyBGColor: #343541;
-    --BGColor: #40414F ;
-    --borderColor: hsla(0,0%,100%,.2);
+
+    --brand-red: #a6101f;
+    --brand-blue: #4b9696; 
+    --brand-tan: #f9f0d8;
+    
+
+    --mainColor: var(--brand-blue); ;
+    --textColor: #1a1a1a; 
+    --headingColor: #000000 ;
+    --asideColor: #d4c6b4;
+    --bodyBGColor: var(--brand-tan);    
+    --BGColor: #ffffff ;
+    --borderColor: rgba(0, 0, 0, 0.2);
+    /*--interfaceColor: rgb(126,114,114);*/
+    --interfaceColor: rgb(255, 255, 255);
+    --box-height: 100vh;
 }
 body{
     background-color: var(--bodyBGColor);
     color: var(--textColor);
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
+
+html{
+    height: 100%;
+}
+
+
 
 aside{
     width: 260px;
@@ -61,7 +82,7 @@ aside header .action-btns{
 aside header .action-btns button{
     width: 250px;
     padding: 11px 15px;
-    background: none;
+    background: #f0f0f0;
     border: 1px solid var(--borderColor);
     color: var(--headingColor);
     border-radius: 5px;
@@ -87,7 +108,8 @@ aside header .bottom {
 aside header .bottom .settings-popup {
     display: flex;
     flex-direction: column;
-    display: none; /* have settings popup not display until settings button is clicked */
+    opacity: 0; /* makes it invisible and you can use transition */
+    transition: opacity 150ms ease-in-out;
 }
 
 aside header .bottom .settings-popup .popup-box {
@@ -95,16 +117,15 @@ aside header .bottom .settings-popup .popup-box {
     justify-content: space-between;
     padding: 10px;
     border: 1px solid var(--borderColor);
+    cursor: pointer;
+    background-color: #f0f0f0;
+    color: var(--headingColor);
 }
 
 aside header .bottom .settings-popup .popup-box p {
     font-style: normal;
 }
 
-aside header .bottom .settings-popup .popup-box:hover {
-    background-color: var(--mainColor);
-    color: var(--headingColor);
-}
 /* settings popup section ends here */
 
 aside header .bottom .bottom-row{
@@ -126,7 +147,7 @@ aside header .bottom .bottom-row{
     color: var(--headingColor);
     border: 1px solid var(--borderColor);
     border-radius: 5px;
-    background-color: var(--asideColor);
+    background-color: #f0f0f0;
     cursor: pointer;
     transition: left 0.3s ease-in-out, bottom 0.3s ease-in-out;
     z-index: 1;
@@ -154,9 +175,9 @@ aside header .bottom .bottom-row{
     color: var(--headingColor);
     border: 1px solid var(--borderColor);
     border-radius: 5px;
-    background-color: var(--asideColor);
+    background-color: #f0f0f0;
     cursor: pointer;
-    transition: left 0.3s ease-in-out, color 0.3s ease-in-out;
+    transition: background-color 0.3s ease-in-out, left 0.3s ease-in-out, color 0.3s ease-in-out;
     display: flex;
     justify-content: center;
     align-items: center; 
@@ -175,47 +196,45 @@ aside header .bottom .bottom-row{
 }
 /*MAIN CONTENT*/
 main{
-    background-color: rgb(126, 114, 114);
-    height: 100vh;
+    /*background-color: rgb(126, 114, 114);*/
+    background-color: var(--interfaceColor);
+    flex: 1;
+    /*height: var(--box-height); /* changed it to variable so you can manually set height with javascript */
     margin-left: 260px;
     transition: 0.3s;
+    display: flex;
+    flex-direction: column;
 }
 
 main #inner{
      max-width: 800px;
-     height: 100vh;
+    /*height: calc(100%); /* this makes the height equal to 100% of the height of its parent element */
     margin: 0 auto;
     padding: 20px;
-    position: relative;
+    display: flex;
+    /*position: relative;*/
     display: flex;
     flex-direction: column;
-    justify-content: flex-end;
+    width: 100%;
+    /*justify-content: flex-end;
     align-items: center;
-    overflow: hidden;
+    overflow: hidden;*/
+    background-color: var(--interfaceColor);
 
 }
 
 
-main #inner .logo{
-    text-align:center;
-    position: absolute;
-    top: 120px;
-    left: 0;
-    right: 0;
-    bottom: 200px;
-    font-size: 25px;
-    font-weight: 7s;
-    color: rgb(104, 94, 94);
-}
+
 
 main #inner .searchBox{
     width: 100%;
+    margin-top: 50px;
     
 }
 
 main #inner .searchBox form{
     padding: 1rem;
-    background-color: var(--BGColor);
+    background-color:#d4c6b4;
     border-radius: 7px;
     display: flex;
     justify-content: space-between;
@@ -230,7 +249,7 @@ main #inner .searchBox form textarea{
     border: none;
     resize: none;
     outline: none;
-    color: var(--headingColor);
+    color: var(--brand-red);
     font-size: 16px;
     font-weight: 400;
     line-height: 24px;
@@ -246,12 +265,16 @@ main #inner .searchBox form button{
     transition: 0.2s;
 }
 
+main #inner .searchBox form button:hover{
+    background-color: #357373;
+    color: var(--headingColor);
+}
 .logo-container {
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 8px;
-    background-color: rgb(104, 94, 94);
+    background-color: #d4c6b4;
     transition: all 0.3s ease-in-out;
 }
 
@@ -331,3 +354,277 @@ main #inner .searchBox form button{
     display: block;
 }
 
+/* New Chat interface */
+.new-chat {
+    background-color: #f0f0f0;
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+.new-chat h2 {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.new-chat textarea {
+    width: 100%;
+    height: 100px;
+    padding: 10px;
+    font-size: 16px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.new-chat button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background-color: #19C37D;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.new-chat button:hover {
+    background-color: #17a15f;
+}
+
+/* chat appearance menu */
+main #inner #appearance-popup {
+    position: fixed;
+    bottom: 17.4%;
+    left: 250px;
+    border: 1px solid var(--borderColor);
+    width: 250px;
+    background-color: var(--asideColor);
+    opacity: 0; /*make it invisible unless settings button, then chat appearance button is clicked */
+    pointer-events: none; /*makes it so that you can't still click on it if its invisible */
+}
+
+main #inner #appearance-popup .appearance-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--borderColor);
+    padding-left: 15px;
+    font-size: 1em;
+}
+
+main #inner #appearance-popup .appearance-header #close-appearance {
+    background: none;
+    border: none;
+    border: 1px solid var(--borderColor);
+    color: var(--textColor);
+    cursor: pointer;
+    font-weight: bold;
+    padding: 0 5px;
+    font-size: 1em;
+}
+
+main #inner #appearance-popup .appearance-header #close-appearance:hover {
+    background-color: var(--mainColor);
+    color: var(--textColor);
+}
+
+input[type="radio"].toggle-appearance {
+    opacity: 0;
+    position: absolute; /* makes it invisible */
+    left: -9000px;
+    top: -9000px; /* makes it so that radio button is no longer on page, but clicking on the label will toggle the radio button */
+}
+
+input[type="radio"].toggle-appearance + label {
+    display: flex;
+    align-items: center;
+    position: relative;
+    cursor: pointer;
+    gap: 5px;
+}
+
+/* this part will be temporary */
+input[type="radio"].toggle-appearance:checked + label {
+    color: red;
+}
+
+/* adds content before the label */
+input[type="radio"].toggle-appearance + label::before {
+    content: "";
+    width: 2em;
+    height: 1em;
+    border-radius: 1em;
+    margin-left: .5em;
+    font-size: .75em;
+    background-color: white; /* color of background of accessibility toggle */
+    transition: background-color 200ms ease-in-out;
+}
+
+/* adds contenet after the label */
+input[type="radio"].toggle-appearance + label::after {
+    content: "\2715";
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute; /* moves it to left of label */
+    left: .2em; /* moves it back into position */
+    color: white;
+    background-color: red; /* color of background of "off" option*/
+    width: .9em;
+    height: .9em;
+    border-radius: 1em;
+    transition: background-color 200ms ease-in-out, transform 200ms ease-in-out;
+}
+
+/* adds content after the selected label */
+input[type="radio"].toggle-appearance:checked + label::after {
+    transform: translateX(100%);
+    content: "\2713";
+    background-color: #19C37D; /* color of background of "on" option */
+}
+
+/* adds content before the selected label */
+input[type="radio"].toggle-appearance:checked + label::before {
+    outline: 1px solid black;
+}
+
+.chat-messages {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    height: 70vh;
+    overflow-y: auto;
+    padding: 10px;
+    /*width: 100%; /* makes it the width of the #inner element */
+}
+
+/* Bubbles */
+.chat-message {
+    max-width: 80%;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 16px;
+    white-space: pre-wrap;
+}
+
+.chat-message.user {
+    align-self: flex-end;
+    background-color: var(--brand-red);
+    color: white;
+}
+
+.chat-message.bot {
+    align-self: flex-start;
+    background-color: var(--brand-blue);
+    color: white;
+}
+
+
+
+
+/* Chat message container layout */
+#chat-messages {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;         /* Default alignment (left for bot) */
+    padding: 1rem;
+    overflow-y: auto;
+    height: 60vh;                    /* Adjust based on your layout */
+    scroll-behavior: smooth;
+  }
+  
+  /* Shared message bubble styles */
+  .chat-message {
+    max-width: 75%;
+    padding: 12px 16px;
+    margin: 5px 0;
+    border-radius: 12px;
+    font-size: 15px;
+    line-height: 1.5;
+    word-break: break-word;
+    white-space: pre-wrap;
+    display: inline-block;
+  }
+  
+  /* User (right-aligned, green) */
+  .chat-message.user {
+    align-self: flex-end;
+    background-color: var(--brand-red);
+    color: white;
+    text-align: right;
+  }
+  
+  /* Bot (left-aligned, gray) */
+  .chat-message.bot {
+    align-self: flex-start;
+    background-color: var(--brand-blue);
+    color: white;
+    text-align: left;
+  }
+   /* about RLB */
+
+ /* Overlay + Centered Popup */
+.popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.6); /* Dark fade background */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+/* Hide popup initially */
+.hidden {
+    display: none;
+}
+
+/* Popup Content */
+.popup-content {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 700px;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+    font-family: Arial, sans-serif;
+    color: #000;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* Close Button */
+.popup-close {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #999;
+    cursor: pointer;
+}
+
+.popup-close:hover {
+    color: #000;
+}
+
+/* Title */
+.popup-content h2 {
+    font-size: 28px;
+    font-weight: bold;
+    color: #000;
+    margin-bottom: 20px;
+}
+
+/* Paragraphs */
+.popup-content p {
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
