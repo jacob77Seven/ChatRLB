@@ -246,6 +246,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Append message to chat box
     function appendMessage(sender, text) {
+        const welcome = document.querySelector(".logo");
+        if (welcome) welcome.style.display = "none";
+    
         const msg = document.createElement("div");
         msg.classList.add("chat-message", sender); // user or bot
         msg.innerHTML = `<p>${text}</p>`;
@@ -268,25 +271,18 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
-//about RLB button
-document.addEventListener('DOMContentLoaded', function () {
-    const aboutLink = document.getElementById('about-link');
-    const popup = document.getElementById('aboutPopup');
-    const closePopup = document.getElementById('popup-close');
+document.addEventListener("DOMContentLoaded", function () {
+    const welcomeText = document.getElementById("welcome-text");
+    const message = "Welcome to ChatRLB!";
+    let index = 0;
 
-    aboutLink.addEventListener('click', function (e) {
-        e.preventDefault(); // Prevent link jump
-        popup.classList.remove('hidden'); // Show popup
-    });
-
-    closePopup.addEventListener('click', function () {
-        popup.classList.add('hidden'); // Hide popup
-    });
-
-    // Optional: Close if click outside popup content
-    window.addEventListener('click', function (e) {
-        if (e.target === popup) {
-            popup.classList.add('hidden');
+    function typeNextChar() {
+        if (index < message.length) {
+            welcomeText.textContent += message.charAt(index);
+            index++;
+            setTimeout(typeNextChar, 75); // Speed in ms
         }
-    });
+    }
+
+    typeNextChar();
 });
