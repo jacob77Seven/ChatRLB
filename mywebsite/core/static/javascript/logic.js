@@ -246,7 +246,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Append message to chat box
     function appendMessage(sender, text) {
-        const welcome = document.querySelector("welcome-text");
+        const welcome = document.querySelector("#welcome-text");
         if (welcome) welcome.style.display = "none";
     
         const msg = document.createElement("div");
