@@ -44,7 +44,7 @@ settingsBtn.addEventListener('mouseover', () => {
 
 settingsBtn.addEventListener('mouseout', () => {
     if (!settingsClicked) {
-        settingsBtn.style.backgroundColor = "#f0f0f0";
+        settingsBtn.style.backgroundColor = "var(--buttonColor)";
         //console.log("settings mouseout")
     }
 });
@@ -57,7 +57,7 @@ settingsBtn.addEventListener('click', function() {
         settingsBtn.style.backgroundColor = "var(--mainColor)";
         settingsPopup.style.opacity = "1";
     } else {
-        settingsBtn.style.backgroundColor = "#f0f0f0";
+        settingsBtn.style.backgroundColor = "var(--buttonColor)";
         settingsPopup.style.opacity = "0";
     }
 
@@ -76,7 +76,7 @@ appearanceBtn.addEventListener('mouseover', () => {
 appearanceBtn.addEventListener('mouseout', () => {
     if (settingsClicked) {
         if (!appearanceClicked) {
-            appearanceBtn.style.backgroundColor = "#f0f0f0";
+            appearanceBtn.style.backgroundColor = "var(--buttonColor)";
         }
     }
 })
@@ -92,7 +92,7 @@ appearanceBtn.addEventListener('click', () => {
             appearancePopup.style.opacity = 1; // make appearance pop-up show up
             appearancePopup.style.pointerEvents = "all"; // you can click on the buttons again
         } else {
-            appearanceBtn.style.backgroundColor = "#f0f0f0";
+            appearanceBtn.style.backgroundColor = "var(--buttonColor)";
         }
     }
 })
@@ -103,7 +103,7 @@ closeAppearanceBtn.addEventListener('click', () => {
     body.style.pointerEvents="all"; // now you can click on everything again
     appearancePopup.style.pointerEvents = "none";
     appearanceClicked = !(appearanceClicked); // unclick appearance button
-    appearanceBtn.style.backgroundColor = "#f0f0f0"; 
+    appearanceBtn.style.backgroundColor = "var(--buttonColor)"; 
 })
 
 // dark mode
@@ -112,6 +112,11 @@ let lightModeBox = document.getElementById("light-mode");
 let contrastModeBox = document.getElementById("high-contrast-mode");
 let root = document.querySelector(':root');
 let aside2 = document.getElementsByTagName("aside")[0];
+let logoImg = document.getElementsByTagName("img")[0];
+let profileBox = document.getElementsByClassName("profile-icon")[0];
+let logoBox = document.getElementsByClassName("logo-container")[0];
+let formBox = document.getElementById("chat-form");
+let formInput = document.getElementById("chat-input");
 
 darkModeBox.addEventListener("change", () => {
     if (darkModeBox.checked) {
@@ -119,7 +124,25 @@ darkModeBox.addEventListener("change", () => {
         root.style.setProperty('--asideColor', '#202123');
         root.style.setProperty('--textColor', 'rgb(209, 213, 219)');
         root.style.setProperty('--borderColor', 'hsla(0,0%,100%,.2)');
-        aside2.borderRight = 'none';
+        root.style.setProperty('--buttonColor', '#40414f');
+        root.style.setProperty('--headingColor', 'rgb(255,255,255)');
+        root.style.setProperty('--mainColor', 'var(--brand-blue)');
+        profileBox.style.border = 'none';
+        logoImg.style.filter = 'brightness(1) invert(0)'; // default for image
+        logoBox.style.backgroundColor = 'rgb(60, 60, 73)';
+        logoBox.style.borderBottom = 'none';
+        aside2.style.borderRight = 'none';
+        formBox.style.backgroundColor = 'rgb(71, 72, 87)';
+        formBox.style.border = 'none';
+        formInput.style.color = 'white';
+
+        root.style.setProperty('--backgroundColorUser', 'var(--brand-red)');
+        root.style.setProperty('--ColorUser', 'white');
+        root.style.setProperty('--borderUser', 'none');
+ 
+        root.style.setProperty('--backgroundColorBot', 'var(--brand-blue)');
+        root.style.setProperty('--ColorBot', 'white');
+        root.style.setProperty('--borderBot', 'none');
     }
 })
 
@@ -130,7 +153,25 @@ lightModeBox.addEventListener("change", () => {
         root.style.setProperty('--asideColor', '#d4c6b4');
         root.style.setProperty('--textColor', '#1a1a1a');
         root.style.setProperty('--borderColor', 'rgba(0,0,0,0.2)');
+        root.style.setProperty('--buttonColor', '#f0f0f0');
+        root.style.setProperty('--headingColor', '#000000');
+        root.style.setProperty('--mainColor', 'var(--brand-blue)');
+        profileBox.style.border = 'none';
+        logoImg.style.filter = 'brightness(1) invert(0)'; // default for image
+        logoBox.style.borderBottom = 'none';
+        logoBox.style.backgroundColor = '#d4c6b4';
         aside2.style.borderRight = 'none';
+        formBox.style.backgroundColor = '#d4c6b4';
+        formBox.style.border = 'none';
+        formInput.style.color = 'var(--brand-red)';
+ 
+        root.style.setProperty('--backgroundColorUser', 'var(--brand-red)');
+        root.style.setProperty('--ColorUser', 'white');
+        root.style.setProperty('--borderUser', 'none');
+ 
+        root.style.setProperty('--backgroundColorBot', 'var(--brand-blue)');
+        root.style.setProperty('--ColorBot', 'white');
+        root.style.setProperty('--borderBot', 'none');
     }
 })
 
@@ -138,9 +179,28 @@ contrastModeBox.addEventListener("change", () => {
     if (contrastModeBox.checked) {
         root.style.setProperty('--interfaceColor', 'black');
         root.style.setProperty('--asideColor', 'black');
-        root.style.setProperty('--textColor', 'yellow');
+        root.style.setProperty('--textColor', 'white');
         root.style.setProperty('--borderColor', 'white');
-        aside2.style.borderRight = "1px solid var(--borderColor)";
+        root.style.setProperty('--buttonColor', 'black');
+        root.style.setProperty('--headingColor', 'white');
+        root.style.setProperty('--mainColor', '#343541');
+        profileBox.style.border = '1px solid var(--borderColor)'; // put border around profile icon
+        logoImg.style.filter = 'brightness(0) invert(1)'; // turns image white
+        logoBox.style.borderBottom = '1px solid var(--borderColor)'; 
+        logoBox.style.backgroundColor = 'black';
+        aside2.style.borderRight = '1px solid var(--borderColor)';
+        formBox.style.backgroundColor = 'black';
+        formBox.style.border = '1px solid var(--borderColor)';
+        formInput.style.color = 'white';
+
+        // for chat messages
+        root.style.setProperty('--backgroundColorUser', 'black');
+        root.style.setProperty('--ColorUser', 'var(--brand-red)');
+        root.style.setProperty('--borderUser', '1px solid var(--brand-red)');
+
+        root.style.setProperty('--backgroundColorBot', 'black');
+        root.style.setProperty('--ColorBot', 'var(--brand-blue)');
+        root.style.setProperty('--borderBot', '1px solid var(--brand-blue)');
     }
 })
 
@@ -156,7 +216,7 @@ sizeBtn.addEventListener('mouseover', () => {
 sizeBtn.addEventListener('mouseout', () => {
     if (settingsClicked) {
         if (!sizeClicked) {
-            sizeBtn.style.backgroundColor = "#f0f0f0";
+            sizeBtn.style.backgroundColor = "var(--buttonColor)";
         }
     }
 })
@@ -169,7 +229,7 @@ sizeBtn.addEventListener('click', () => {
             sizeBtn.style.backgroundColor = "var(--mainColor)";
             // add menu display here
         } else {
-            sizeBtn.style.backgroundColor = "#f0f0f0";
+            sizeBtn.style.backgroundColor = "var(--buttonColor)";
         }
     }
 })
