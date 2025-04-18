@@ -562,7 +562,7 @@ input[type="radio"].toggle-appearance:checked + label::before {
   }
 
   #welcome-text {
-    position: absolute;
+    position: fixed;
     top: 40%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -572,14 +572,14 @@ input[type="radio"].toggle-appearance:checked + label::before {
     white-space: nowrap;
     overflow: hidden;
     border-right: 2px solid var(--brand-red);
-    width: 0;
-    animation: typing 3s steps(30, end) forwards: blink 0.7s step-end infinite;
+    width: 0:
+    animation: typing 3s steps(30, end) forwards, blink 0.7s step-end infinite;
     z-index: 10;
 }
 
 @keyframes typing {
     from { width: 0; }
-    to { width: 100%; }
+    to { width: 27%; }
 }
 
 @keyframes blink {
