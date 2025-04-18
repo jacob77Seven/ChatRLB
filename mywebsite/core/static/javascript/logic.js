@@ -99,11 +99,16 @@ appearanceBtn.addEventListener('click', () => {
 
 let closeAppearanceBtn = document.getElementById("close-appearance");
 closeAppearanceBtn.addEventListener('click', () => {
+    let settingsPopup = document.getElementsByClassName("settings-popup")[0];
+
     appearancePopup.style.opacity = 0; // make popup close
     body.style.pointerEvents="all"; // now you can click on everything again
     appearancePopup.style.pointerEvents = "none";
     appearanceClicked = !(appearanceClicked); // unclick appearance button
     appearanceBtn.style.backgroundColor = "var(--buttonColor)"; 
+    settingsBtn.style.backgroundColor = "var(--buttonColor)";
+    settingsPopup.style.opacity = "0";
+    settingsClicked = !settingsClicked;
 })
 
 // dark mode
