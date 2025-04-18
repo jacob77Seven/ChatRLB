@@ -30,6 +30,17 @@
     --borderColor: rgba(0, 0, 0, 0.2);
     /*--interfaceColor: rgb(126,114,114);*/
     --interfaceColor: rgb(255, 255, 255);
+    --buttonColor: #f0f0f0;
+    --imageColor: #d4c6b4;
+    --formColor: #d4c6b4;
+
+    --borderUser: none; /* used since unable to access element in js */
+    --borderBot: none;
+    --ColorUser: white;
+    --ColorBot: white;
+    --backgroundColorBot: var(--brand-blue);
+    --backgroundColorUser: var(--brand-red);
+
     --box-height: 100vh;
 }
 body{
@@ -82,7 +93,7 @@ aside header .action-btns{
 aside header .action-btns button{
     width: 250px;
     padding: 11px 15px;
-    background: #f0f0f0;
+    background: var(--buttonColor);
     border: 1px solid var(--borderColor);
     color: var(--headingColor);
     border-radius: 5px;
@@ -118,7 +129,7 @@ aside header .bottom .settings-popup .popup-box {
     padding: 10px;
     border: 1px solid var(--borderColor);
     cursor: pointer;
-    background-color: #f0f0f0;
+    background-color: var(--buttonColor);
     color: var(--headingColor);
 }
 
@@ -147,7 +158,7 @@ aside header .bottom .bottom-row{
     color: var(--headingColor);
     border: 1px solid var(--borderColor);
     border-radius: 5px;
-    background-color: #f0f0f0;
+    background-color: var(--buttonColor);
     cursor: pointer;
     transition: left 0.3s ease-in-out, bottom 0.3s ease-in-out;
     z-index: 1;
@@ -175,7 +186,7 @@ aside header .bottom .bottom-row{
     color: var(--headingColor);
     border: 1px solid var(--borderColor);
     border-radius: 5px;
-    background-color: #f0f0f0;
+    background-color: var(--buttonColor);
     cursor: pointer;
     transition: background-color 0.3s ease-in-out, left 0.3s ease-in-out, color 0.3s ease-in-out;
     display: flex;
@@ -231,7 +242,7 @@ main #inner .searchBox{
 
 main #inner .searchBox form{
     padding: 1rem;
-    background-color:#d4c6b4;
+    background-color: var(--formColor);
     border-radius: 7px;
     display: flex;
     justify-content: space-between;
@@ -271,7 +282,7 @@ main #inner .searchBox form button:hover{
     justify-content: center;
     align-items: center;
     padding: 8px;
-    background-color: #d4c6b4;
+    background-color: var(--imageColor);
     transition: all 0.3s ease-in-out;
 }
 
@@ -291,7 +302,7 @@ main #inner .searchBox form button:hover{
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: var(--BGColor);
+    background-color: var(--buttonColor);
     border-radius: 50%;
     color: var(--headingColor);
     font-size: 20px;
@@ -309,7 +320,7 @@ main #inner .searchBox form button:hover{
     position: absolute;
     top: 50px;
     right: 20px;
-    background-color: var(--BGColor);
+    background-color: var(--buttonColor);
     border: 1px solid var(--borderColor);
     border-radius: 5px;
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
@@ -548,16 +559,18 @@ input[type="radio"].toggle-appearance:checked + label::before {
   /* User (right-aligned, green) */
   .chat-message.user {
     align-self: flex-end;
-    background-color: var(--brand-red);
-    color: white;
+    background-color: var(--backgroundColorUser); /*--brand-red*/
+    color: var(--ColorUser);
+    border: var(--borderUser); /* only used for high contrast mode */
     text-align: right;
   }
   
   /* Bot (left-aligned, gray) */
   .chat-message.bot {
     align-self: flex-start;
-    background-color: var(--brand-blue);
-    color: white;
+    background-color: var(--backgroundColorBot); /*--brand-blue*/
+    color: var(--ColorBot);
+    border: var(--borderBot);
     text-align: left;
   }
 
