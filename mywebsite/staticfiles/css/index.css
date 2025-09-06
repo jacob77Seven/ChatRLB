@@ -652,3 +652,50 @@ input[type="radio"].toggle-appearance:checked + label::before {
     line-height: 1.6;
     margin-bottom: 15px;
 }
+
+/* lay out the form row neatly */
+.searchBox #chat-form { 
+  display: flex; 
+  align-items: center; 
+  gap: 8px; 
+}
+
+/* textarea stretches */
+#chat-input { 
+  flex: 1; 
+}
+
+/* generic icon button style */
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid var(--borderColor, rgba(0,0,0,0.2));
+  background: var(--buttonColor, #e8e8e8);
+  color: var(--headingColor, #1a1a1a);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.icon-btn:hover { 
+  background: var(--mainColor, #dfe7ff); 
+}
+
+.icon-btn i { 
+  pointer-events: none; 
+  font-size: 16px;
+}
+
+/* send button keeps your teal look */
+.icon-btn.send {
+  background-color: var(--mainColor, #5f9ea0);
+  color: var(--headingColor, #ffffff);
+  border: none;
+}
+.icon-btn.send:hover {
+  filter: brightness(0.95);
+}
