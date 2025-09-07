@@ -327,40 +327,24 @@ document.addEventListener("DOMContentLoaded", function () {
                 <div class="searchBox">
                     <form id="chat-form">
                         <textarea id="chat-input" rows="1" placeholder="What does Jesus say about..."></textarea>
-
-                <!-- speaker (TTS) - placeholder, no JS yet -->
-                    <button type="button" id="tts-btn" class="icon-btn" title="Voice replies">
-                        <i class="fa-solid fa-volume-high"></i>
-                    </button>
-
-                <!-- microphone (STT) - placeholder, no JS yet -->
-                    <button type="button" id="stt-mic-btn" class="icon-btn" title="Speak">
-                        <i class="fa-solid fa-microphone"></i>
-                    </button>
-
-                <!-- existing Send -->
-                    <button type="submit" class="icon-btn send">
-                        <i class="fa-solid fa-paper-plane"></i>
-                    </button>
+                        <button type="button" id="tts-btn" class="icon-btn" title="Text-To-Speech"><i class="fa-solid fa-volume-high"></i></button>
+                        <button type="button" id="stt-mic-btn" class="icon-btn" title="Speech-To-Text"><i class="fa-solid fa-microphone"></i></button>
+                        <button type="submit" class="icon-btn send" title="Enter"><i class="fa-solid fa-paper-plane"></i></button>
                 </form>
             </div>
             `;
             chatBox.style.width = "100%"; // this sets the width of the chatbox to the size of #inner block
 
             chatContainer.appendChild(chatBox); // Add to main chat area
-            wireChatForm({
-                form: document.getElementById("chat-form"),
-                input: document.getElementById("chat-input"),
-                container: chatContainer
-                });
-
             document.getElementById("chat-input").focus(); // Focus on input
-
             wireChatForm({
-                form: document.getElementById("chat-form"),
-                input: document.getElementById("chat-input"),
-                container: chatContainer // send/receive messages inside #inner for this view
-                });
+                form: document.getElementById('chat-form'),
+                input: document.getElementById('chat-input'),
+                container: document.getElementById('inner') || document.getElementById('chat-messages')
+            });
+            document.getElementById('chat-form')?.dataset.wired
+
+
 
         });
     } else {
@@ -369,21 +353,18 @@ document.addEventListener("DOMContentLoaded", function () {
 })
 
 document.addEventListener("DOMContentLoaded", function () {
-  const existingForm = document.getElementById("chat-form");
-  const existingInput = document.getElementById("chat-input");
-  const preferredContainer =
+  const form = document.getElementById("chat-form");
+  const input = document.getElementById("chat-input");
+  const container =
     document.getElementById("chat-messages") ||
     document.getElementById("inner") ||
-    (existingForm && existingForm.parentElement);
+    (form && form.parentElement);
 
-  if (existingForm && existingInput) {
-    wireChatForm({
-      form: existingForm,
-      input: existingInput,
-      container: preferredContainer
-    });
+  if (form && input) {
+    wireChatForm({ form, input, container });
   }
 });
+
 
 
 /*document.addEventListener("DOMContentLoaded", function () {
@@ -418,32 +399,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }); */
 
-    // Append message to chat box
-    function appendMessage(sender, text) {
-        const welcome = document.querySelector("welcome-text");
-        if (welcome) welcome.style.display = "none";
-    
-        const msg = document.createElement("div");
-        msg.classList.add("chat-message", sender); // user or bot
-        msg.innerHTML = `<p>${text}</p>`;
-        chatContainer.appendChild(msg);
-        chatContainer.scrollTop = chatContainer.scrollHeight; // Auto-scroll
-    }
-
-    // Read CSRF token from cookies (for Django security)
-    function getCSRFToken() {
-        let cookieValue = null;
-        const cookies = document.cookie.split(';');
-        for (let cookie of cookies) {
-            const trimmed = cookie.trim();
-            if (trimmed.startsWith("csrftoken=")) {
-                cookieValue = trimmed.substring("csrftoken=".length);
-                break;
-            }
-        }
-        return cookieValue;
-    }
-
 
 document.addEventListener("DOMContentLoaded", function () {
     const welcomeText = document.getElementById("welcome-text");
@@ -464,185 +419,183 @@ document.addEventListener("DOMContentLoaded", function () {
 // --- CHAT WIRING + SPEECH-TO-TEXT + TEXT-TO-SPEECH ---
 function wireChatForm({ form, input, container }) {
   if (!form || !input) return;
-  if (form.dataset.wired === "1") return; // avoid double-binding
+  if (form.dataset.wired === "1") return;  // avoid double-binding
   form.dataset.wired = "1";
 
-  // Where to append messages
   const chatContainer =
     container ||
     document.getElementById("chat-messages") ||
     document.getElementById("inner") ||
     form.parentElement;
 
-  // Helper: append message bubble
+  // -- helpers inside the form scope --
   function appendMessage(sender, text) {
-    const welcome = document.querySelector("welcome-text");
+    const welcome = document.querySelector("#welcome-text");
     if (welcome) welcome.style.display = "none";
-
     const msg = document.createElement("div");
-    msg.classList.add("chat-message", sender); // 'user' or 'bot'
+    msg.classList.add("chat-message", sender);
     msg.innerHTML = `<p>${text}</p>`;
     chatContainer.appendChild(msg);
     chatContainer.scrollTop = chatContainer.scrollHeight;
-
-    // 🔊 Speak bot replies if enabled
-    if (sender === "bot") speak(text);
+    if (sender === "bot") speak(text); // TTS on bot replies
   }
 
-  // Helper: CSRF for Django
   function getCSRFToken() {
     let cookieValue = null;
-    const cookies = document.cookie.split(';');
-    for (let cookie of cookies) {
-      const trimmed = cookie.trim();
-      if (trimmed.startsWith("csrftoken=")) {
-        cookieValue = trimmed.substring("csrftoken=".length);
-        break;
-      }
-    }
+    document.cookie.split(";").forEach((cookie) => {
+      const t = cookie.trim();
+      if (t.startsWith("csrftoken=")) cookieValue = t.substring("csrftoken=".length);
+    });
     return cookieValue;
   }
 
-  // ---------- 🔊 Text-to-Speech (TTS) toggle ----------
-  const ttsBtn = document.createElement("button");
-  ttsBtn.type = "button";
-  ttsBtn.id = "tts-btn";
-  ttsBtn.title = "Toggle voice for AI replies";
-  ttsBtn.style.marginLeft = "8px";
-  ttsBtn.style.minWidth = "42px";
-  ttsBtn.style.height = "42px";
-  ttsBtn.style.borderRadius = "8px";
-  ttsBtn.style.border = "1px solid var(--borderColor, rgba(0,0,0,0.2))";
-  ttsBtn.style.cursor = "pointer";
+  // --- Reuse existing buttons (from markup) or create if missing ---
+  let ttsBtn = form.querySelector("#tts-btn");
+  if (!ttsBtn) {
+    ttsBtn = document.createElement("button");
+    ttsBtn.type = "button";
+    ttsBtn.id = "tts-btn";
+    ttsBtn.className = "icon-btn";
+    ttsBtn.title = "Voice replies";
+    ttsBtn.innerHTML = '<i class="fa-solid fa-volume-high"></i>';
+  }
 
-  let ttsEnabled = true;              // default ON
-  const hasTTS = "speechSynthesis" in window;
-  ttsBtn.textContent = hasTTS ? "🔊" : "🚫";
-  if (!hasTTS) ttsBtn.disabled = true;
+  let micBtn = form.querySelector("#stt-mic-btn");
+  if (!micBtn) {
+    micBtn = document.createElement("button");
+    micBtn.type = "button";
+    micBtn.id = "stt-mic-btn";
+    micBtn.className = "icon-btn";
+    micBtn.title = "Speak";
+    micBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
+  }
 
-  function speak(text) {
-    if (!ttsEnabled || !hasTTS) return;
-    try {
-      window.speechSynthesis.cancel();  // stop anything already talking
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = "en-US";
-      u.rate = 1;    // tweak if you want faster/slower
-      u.pitch = 1;
-      window.speechSynthesis.speak(u);
-    } catch (e) {
-      console.warn("TTS error:", e);
+  // Place them just before the Send button (keeps layout neat)
+  const submitBtn = form.querySelector('button[type="submit"]') || form.lastElementChild;
+  if (ttsBtn.parentElement !== form) form.insertBefore(ttsBtn, submitBtn);
+  if (micBtn.parentElement !== form) form.insertBefore(micBtn, submitBtn);
+
+
+// --- 🔊 TTS (voice for AI replies) ---
+let ttsEnabled = true;
+const hasTTS = "speechSynthesis" in window;
+if (!hasTTS) {
+  ttsBtn.disabled = true;
+  ttsBtn.title = "Voice not supported (try Chrome/Edge/Safari)";
+  ttsBtn.innerHTML = '<i class="fa-solid fa-ban"></i>';
+}
+
+function speak(text) {
+  if (!ttsEnabled || !hasTTS || !text) return;
+  try {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "en-US"; u.rate = 1; u.pitch = 1;
+    window.speechSynthesis.speak(u);
+  } catch (err) {
+    console.warn("[TTS] speak() error:", err);
+  }
+}
+
+// Toggle voice; when turning ON, read the most recent bot message immediately
+ttsBtn.addEventListener("click", () => {
+  ttsEnabled = !ttsEnabled;
+  ttsBtn.innerHTML = ttsEnabled
+    ? '<i class="fa-solid fa-volume-high"></i>'
+    : '<i class="fa-solid fa-volume-xmark"></i>';
+  console.log("[TTS] toggled:", ttsEnabled ? "ON" : "OFF");
+
+  if (!ttsEnabled && hasTTS) window.speechSynthesis.cancel();
+  if (ttsEnabled) {
+    const scope = container || document.getElementById("chat-messages") || document.getElementById("inner") || document.body;
+    const lastBot = Array.from(scope.querySelectorAll(".chat-message.bot")).pop();
+    const text = lastBot?.textContent?.trim();
+    if (text) speak(text);
+  }
+});
+
+// Auto-speak future bot replies
+const ttsObserver = new MutationObserver((mutations) => {
+  if (!ttsEnabled) return;
+  for (const m of mutations) {
+    for (const n of m.addedNodes) {
+      if (n.nodeType !== 1) continue;
+      if (n.classList?.contains("chat-message") && n.classList?.contains("bot")) {
+        const text = n.textContent?.trim();
+        if (text) speak(text);
+      }
     }
   }
+});
+ttsObserver.observe(
+  container || document.getElementById("chat-messages") || document.getElementById("inner") || document.body,
+  { childList: true, subtree: true }
+);
 
-  ttsBtn.addEventListener("click", () => {
-    ttsEnabled = !ttsEnabled;
-    ttsBtn.textContent = ttsEnabled ? "🔊" : "🔇";
-    if (!ttsEnabled && hasTTS) window.speechSynthesis.cancel();
-  });
 
-  // ---------- 🎤 Speech-to-Text (STT) mic ----------
-  const micBtn = document.createElement("button");
-  micBtn.type = "button";
-  micBtn.id = "stt-mic-btn";
-  micBtn.title = "Hold to talk (or click to toggle)";
-  micBtn.style.marginLeft = "8px";
-  micBtn.style.minWidth = "42px";
-  micBtn.style.height = "42px";
-  micBtn.style.borderRadius = "8px";
-  micBtn.style.border = "1px solid var(--borderColor, rgba(0,0,0,0.2))";
-  micBtn.style.cursor = "pointer";
-  micBtn.textContent = "🎤";
 
-  const hasSTT = ("SpeechRecognition" in window) || ("webkitSpeechRecognition" in window);
-  let recognition = null;
-  let listening = false;
+// --- 🎤 STT (speech input) ---
+const hasSTT = ("SpeechRecognition" in window) || ("webkitSpeechRecognition" in window);
+let recognition = null, listening = false;
 
-  if (hasSTT) {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    recognition = new SpeechRecognition();
-    recognition.lang = "en-US";
-    recognition.continuous = false;    // one utterance per start()
-    recognition.interimResults = true; // show partials
+if (hasSTT) {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SR();
+  recognition.lang = "en-US";
+  recognition.continuous = false;
+  recognition.interimResults = true;
 
-    const setMicUI = (active) => {
-      listening = active;
-      micBtn.textContent = active ? "🎙️" : "🎤";
-      micBtn.style.background = active ? "var(--mainColor, #dfe7ff)" : "";
-    };
-
-    recognition.onstart = () => setMicUI(true);
-
-    recognition.onresult = (event) => {
-      let interim = "";
-      let final = "";
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const chunk = event.results[i][0].transcript;
-        if (event.results[i].isFinal) final += chunk;
-        else interim += chunk;
-      }
-
-      // Show interim cue in placeholder (non-destructive)
-      if (interim) {
-        input.placeholder = interim;
-      } else {
-        input.placeholder = input.getAttribute("data-ph") || input.placeholder || "What does Jesus say about...";
-      }
-
-      // Commit final text into the input
-      if (final) {
-        input.value = input.value
-          ? (input.value.trim() + " " + final.trim())
-          : final.trim();
-      }
-    };
-
-    recognition.onerror = (e) => {
-      console.error("Speech recognition error:", e.error || e);
-      setMicUI(false);
-    };
-
-    recognition.onend = () => {
-      // Reset interim UI
-      input.placeholder = input.getAttribute("data-ph") || input.placeholder || "What does Jesus say about...";
-      setMicUI(false);
-
-      // ✅ Auto-send after you stop speaking
-      if (input.value.trim()) form.requestSubmit();
-    };
-
-    // Click = toggle; press & hold works too
-    micBtn.addEventListener("click", () => {
-      if (!listening) recognition.start();
-      else recognition.stop();
-    });
-    micBtn.addEventListener("mousedown", () => {
-      if (!listening) recognition.start();
-    });
-    micBtn.addEventListener("mouseup", () => {
-      if (listening) recognition.stop();
-    });
-    micBtn.addEventListener("mouseleave", () => {
-      if (listening) recognition.stop();
-    });
-    micBtn.addEventListener("touchstart", (e) => {
-      e.preventDefault();
-      if (!listening) recognition.start();
-    }, { passive: false });
-    micBtn.addEventListener("touchend", () => {
-      if (listening) recognition.stop();
-    });
-  } else {
-    micBtn.disabled = true;
-    micBtn.title = "Speech recognition not supported by this browser";
-    micBtn.textContent = "🚫";
+  function setMicUI(active) {
+    listening = active;
+    micBtn.classList.toggle("listening", active);
+    micBtn.innerHTML = active
+      ? '<i class="fa-solid fa-microphone-lines"></i>'
+      : '<i class="fa-solid fa-microphone"></i>';
   }
 
-  // Add buttons to the form (order: Send, 🔊, 🎤). Change order if you prefer.
-  form.appendChild(ttsBtn);
-  form.appendChild(micBtn);
-  // If you want mic before Send, use: form.insertBefore(micBtn, form.lastElementChild);
+  recognition.onstart = () => {
+    console.log("[STT] recognition started");
+    setMicUI(true);
+  };
 
-  // ---------- Submit handler (POST to /chatbot/) ----------
+  recognition.onresult = (e) => {
+    let interim = "", finalTxt = "";
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const t = e.results[i][0].transcript;
+      if (e.results[i].isFinal) finalTxt += t; else interim += t;
+    }
+    input.setAttribute("data-ph", input.getAttribute("data-ph") || input.placeholder || "");
+    input.placeholder = interim || input.getAttribute("data-ph");
+    if (finalTxt) {
+      input.value = input.value ? (input.value.trim() + " " + finalTxt.trim()) : finalTxt.trim();
+    }
+  };
+
+  recognition.onerror = (e) => {
+    console.warn("[STT] error:", e?.error || e);
+    setMicUI(false);
+  };
+
+  recognition.onend = () => {
+    console.log("[STT] recognition ended");
+    input.placeholder = input.getAttribute("data-ph") || input.placeholder;
+    setMicUI(false);
+    if (input.value.trim()) form.requestSubmit();
+  };
+
+  micBtn.addEventListener("click", () => {
+    console.log("[STT] mic clicked. Currently listening:", listening);
+    if (!listening) recognition.start(); else recognition.stop();
+  });
+} else {
+  micBtn.disabled = true;
+  micBtn.title = "Speech recognition not supported (use Chrome, Edge, or Safari)";
+  micBtn.innerHTML = '<i class="fa-solid fa-ban"></i>';
+  console.warn("[STT] Not supported in this browser.");
+}
+
+
+  // --- Submit handler (single source of truth) ---
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const message = input.value.trim();
@@ -654,10 +607,7 @@ function wireChatForm({ form, input, container }) {
     try {
       const response = await fetch("/chatbot/", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": getCSRFToken()
-        },
+        headers: { "Content-Type": "application/json", "X-CSRFToken": getCSRFToken() },
         body: JSON.stringify({ message })
       });
       const data = await response.json();
@@ -668,164 +618,6 @@ function wireChatForm({ form, input, container }) {
   });
 }
 
-// --- CHAT WIRING + SPEECH-TO-TEXT + TEXT-TO-SPEECH ---
-function wireChatForm({ form, input, container }) {
-  if (!form || !input) return;
-  if (form.dataset.wired === "1") return;
-  form.dataset.wired = "1";
-
-  const chatContainer =
-    container ||
-    document.getElementById("chat-messages") ||
-    document.getElementById("inner") ||
-    form.parentElement;
-
-  function appendMessage(sender, text) {
-    const welcome = document.querySelector("#welcome-text");
-    if (welcome) welcome.style.display = "none";
-    const msg = document.createElement("div");
-    msg.classList.add("chat-message", sender);
-    msg.innerHTML = `<p>${text}</p>`;
-    chatContainer.appendChild(msg);
-    chatContainer.scrollTop = chatContainer.scrollHeight;
-    if (sender === "bot") speak(text);
-  }
-
-  function getCSRFToken() {
-    let cookieValue = null;
-    const cookies = document.cookie.split(';');
-    for (let cookie of cookies) {
-      const trimmed = cookie.trim();
-      if (trimmed.startsWith("csrftoken=")) {
-        cookieValue = trimmed.substring("csrftoken=".length);
-        break;
-      }
-    }
-    return cookieValue;
-  }
-
-  // 🔊 TTS toggle
-  const ttsBtn = document.createElement("button");
-  ttsBtn.type = "button";
-  ttsBtn.id = "tts-btn";
-  ttsBtn.title = "Toggle voice for AI replies";
-  ttsBtn.style.marginLeft = "8px";
-  ttsBtn.style.minWidth = "42px";
-  ttsBtn.style.height = "42px";
-  ttsBtn.style.borderRadius = "8px";
-  ttsBtn.style.border = "1px solid var(--borderColor, rgba(0,0,0,0.2))";
-  ttsBtn.style.cursor = "pointer";
-
-  let ttsEnabled = true;
-  const hasTTS = "speechSynthesis" in window;
-  ttsBtn.textContent = hasTTS ? "🔊" : "🚫";
-  if (!hasTTS) ttsBtn.disabled = true;
-
-  function speak(text) {
-    if (!ttsEnabled || !hasTTS) return;
-    try {
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = "en-US";
-      u.rate = 1;
-      u.pitch = 1;
-      window.speechSynthesis.speak(u);
-    } catch {}
-  }
-  ttsBtn.addEventListener("click", () => {
-    ttsEnabled = !ttsEnabled;
-    ttsBtn.textContent = ttsEnabled ? "🔊" : "🔇";
-    if (!ttsEnabled && hasTTS) window.speechSynthesis.cancel();
-  });
-
-  // 🎤 STT mic
-  const micBtn = document.createElement("button");
-  micBtn.type = "button";
-  micBtn.id = "stt-mic-btn";
-  micBtn.title = "Hold to talk (or click to toggle)";
-  micBtn.style.marginLeft = "8px";
-  micBtn.style.minWidth = "42px";
-  micBtn.style.height = "42px";
-  micBtn.style.borderRadius = "8px";
-  micBtn.style.border = "1px solid var(--borderColor, rgba(0,0,0,0.2))";
-  micBtn.style.cursor = "pointer";
-  micBtn.textContent = "🎤";
-
-  const hasSTT = ("SpeechRecognition" in window) || ("webkitSpeechRecognition" in window);
-  let recognition = null, listening = false;
-
-  if (hasSTT) {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    recognition = new SpeechRecognition();
-    recognition.lang = "en-US";
-    recognition.continuous = false;
-    recognition.interimResults = true;
-
-    const setMicUI = (active) => {
-      listening = active;
-      micBtn.textContent = active ? "🎙️" : "🎤";
-      micBtn.style.background = active ? "var(--mainColor, #dfe7ff)" : "";
-    };
-
-    recognition.onstart = () => setMicUI(true);
-    recognition.onresult = (e) => {
-      let interim = "", final = "";
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        const chunk = e.results[i][0].transcript;
-        if (e.results[i].isFinal) final += chunk; else interim += chunk;
-      }
-      if (interim) {
-        input.placeholder = interim;
-      } else {
-        input.placeholder = input.getAttribute("data-ph") || input.placeholder || "What does Jesus say about...";
-      }
-      if (final) {
-        input.value = input.value ? (input.value.trim() + " " + final.trim()) : final.trim();
-      }
-    };
-    recognition.onerror = () => setMicUI(false);
-    recognition.onend = () => {
-      input.placeholder = input.getAttribute("data-ph") || input.placeholder || "What does Jesus say about...";
-      setMicUI(false);
-      if (input.value.trim()) form.requestSubmit(); // auto-send after speaking
-    };
-
-    micBtn.addEventListener("click", () => (!listening ? recognition.start() : recognition.stop()));
-    micBtn.addEventListener("mousedown", () => { if (!listening) recognition.start(); });
-    micBtn.addEventListener("mouseup",   () => { if (listening)  recognition.stop(); });
-    micBtn.addEventListener("mouseleave",() => { if (listening)  recognition.stop(); });
-    micBtn.addEventListener("touchstart", (e) => { e.preventDefault(); if (!listening) recognition.start(); }, { passive:false });
-    micBtn.addEventListener("touchend",   () => { if (listening) recognition.stop(); });
-  } else {
-    micBtn.disabled = true;
-    micBtn.title = "Speech recognition not supported by this browser";
-    micBtn.textContent = "🚫";
-  }
-
-  // Add buttons after Send (change order if you want)
-  form.appendChild(ttsBtn);
-  form.appendChild(micBtn);
-
-  // Submit handler
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const message = input.value.trim();
-    if (!message) return;
-    appendMessage("user", message);
-    input.value = "";
-    try {
-      const r = await fetch("/chatbot/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-CSRFToken": getCSRFToken() },
-        body: JSON.stringify({ message })
-      });
-      const data = await r.json();
-      appendMessage("bot", data.reply || "No response");
-    } catch {
-      appendMessage("bot", "⚠️ Error: Could not contact server.");
-    }
-  });
-}
 
 
 
