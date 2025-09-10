@@ -4,7 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from ollama import chat
 from ollama import ChatResponse
-from .chatbot import *
+from .backend.chatbot import *
 from django.conf import settings
 
 # Create your views here.

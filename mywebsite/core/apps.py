@@ -1,5 +1,5 @@
 from django.apps import AppConfig
-from .chatbot import ModelManager
+from .backend.chatbot import *
 
 class CoreConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
