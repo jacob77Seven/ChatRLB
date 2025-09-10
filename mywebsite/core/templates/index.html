@@ -120,8 +120,11 @@
             <div class="searchBox">
                 <form id="chat-form" method="POST">
                     {% csrf_token %}  
+    
                     <textarea id="chat-input" rows="1" placeholder="What does Jesus say about..."></textarea>
-                    <button type="submit"><i class="fa-solid fa-paper-plane"></i></button>
+                    <button type="button" id="tts-btn" class="icon-btn" title="Text-To-Speech"><i class="fa-solid fa-volume-high"></i></button>
+                    <button type="button" id="stt-mic-btn" class="icon-btn" title="Speech-To-Text"><i class="fa-solid fa-microphone"></i></button>
+                    <button type="submit" class="icon-btn" title="Enter"><i class="fa-solid fa-paper-plane"></i></button>
                 </form>
             </div>
 
@@ -163,9 +166,12 @@
     </div>
 </div>
 
+
+
         <!--Main JS File-->
         <!--script src="{% static 'javascript/logic.js' %}?v=2"></!--script-->
         <script src="{% static 'javascript/logic.js' %}?v={{ cache_bust }}"></script>
+
 
 
     </body>
