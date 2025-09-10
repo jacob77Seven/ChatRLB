@@ -23,7 +23,34 @@ document.addEventListener("DOMContentLoaded", function() {
             main.style.marginLeft = "260px"; // Adjust main content
         }
         isSidebarOpen = !isSidebarOpen; // Toggle state
+        console.log("sidebar open normal : " + isSidebarOpen);
     });
+
+    /* can make function look nicer later */
+    function changeMediaQuery(mediaQuery) {
+        if (mediaQuery.matches) {
+            aside.style.left = "-260px";  // Hide sidebar
+            toggleBtn.style.left = "10px";  // Keep button on the left edge
+            toggleBtn.classList.remove("fa-window-maximize");
+            toggleBtn.classList.add("fa-bars"); // Change icon
+            main.style.marginLeft = "0px"; // Adjust main content
+        } else {
+            aside.style.left = "0px"; // Show sidebar
+            toggleBtn.style.left = "200px";  // Move button inside sidebar
+            toggleBtn.classList.remove("fa-bars");
+            toggleBtn.classList.add("fa-window-maximize"); // Change back
+            main.style.marginLeft = "260px"; // Adjust main content
+        }
+        isSidebarOpen = !isSidebarOpen;
+        console.log("media query sidebar open: " + isSidebarOpen);
+    }
+    let mediaQuery = window.matchMedia("(max-width: 700px"); // create MediaQueryList object
+    changeMediaQuery(mediaQuery); // call listener function at runtime
+    // attach listener function on state changes
+    mediaQuery.addEventListener("change", function() { 
+        changeMediaQuery(mediaQuery);
+    })
+
 });
 
 // set main height here
@@ -81,9 +108,19 @@ appearanceBtn.addEventListener('mouseout', () => {
     }
 })
 
-appearanceBtn.addEventListener('click', () => {
+function handleClick(event) {
+    lightModeBox.focus();
+    //console.log("handleClick: " + event.key);
+    if (event.key === "Enter") {
+        handleAppearance();
+    }
+}
+
+appearanceBtn.addEventListener("click", handleAppearance);
+function handleAppearance() {
     if (settingsClicked) {
         appearanceClicked = !appearanceClicked;
+        console.log("appearanceClicked outside if statement: " + appearanceClicked);
 
         if (appearanceClicked) {
             appearanceBtn.style.backgroundColor = "var(--mainColor)";
@@ -91,14 +128,22 @@ appearanceBtn.addEventListener('click', () => {
             body.style.pointerEvents = "none"; // you cant click on anything else until you click the x button
             appearancePopup.style.opacity = 1; // make appearance pop-up show up
             appearancePopup.style.pointerEvents = "all"; // you can click on the buttons again
+            document.addEventListener("keydown", handleClick);
         } else {
             appearanceBtn.style.backgroundColor = "var(--buttonColor)";
+            appearanceClicked = !appearanceClicked; // this sets the appearanceClicked tracking variable to be right again
+            lightModeBox.blur();
+            darkModeBox.blur();
+            contrastModeBox.blur();
+            closeAppearance();
         }
     }
-})
+}
 
 let closeAppearanceBtn = document.getElementById("close-appearance");
-closeAppearanceBtn.addEventListener('click', () => {
+closeAppearanceBtn.addEventListener('click', closeAppearance);
+
+function closeAppearance() {
     let settingsPopup = document.getElementsByClassName("settings-popup")[0];
 
     appearancePopup.style.opacity = 0; // make popup close
@@ -109,7 +154,9 @@ closeAppearanceBtn.addEventListener('click', () => {
     settingsBtn.style.backgroundColor = "var(--buttonColor)";
     settingsPopup.style.opacity = "0";
     settingsClicked = !settingsClicked;
-})
+    console.log("in closed appearance");
+    document.removeEventListener("keydown", handleClick);
+}
 
 // dark mode
 let darkModeBox = document.getElementById("dark-mode");
@@ -212,6 +259,7 @@ contrastModeBox.addEventListener("change", () => {
 // font size button under settings
 let sizeClicked = false;
 let sizeBtn = document.getElementById('font-size');
+let fontSizePopup = document.getElementById('textsize-popup')
 sizeBtn.addEventListener('mouseover', () => {
     if (settingsClicked) {
         sizeBtn.style.backgroundColor = "var(--mainColor)";
@@ -226,18 +274,85 @@ sizeBtn.addEventListener('mouseout', () => {
     }
 })
 
-sizeBtn.addEventListener('click', () => {
+function handleFontClick(event) {
+    range.focus();
+    console.log("handleFontClick : " + event.key);
+
+    if (event.key === "Enter") {
+        handleTextSize();
+    }
+}
+
+sizeBtn.addEventListener("click", handleTextSize);
+
+function handleTextSize() {
     if (settingsClicked) {
         sizeClicked = !sizeClicked;
+        console.log("size click before if statement: " + sizeClicked);
 
         if (sizeClicked) {
             sizeBtn.style.backgroundColor = "var(--mainColor)";
             // add menu display here
+            body.style.pointerEvents = "none"; // you cant click on anything else until you click the x button
+            fontSizePopup.style.opacity = 1; // make pop-up show up
+            fontSizePopup.style.pointerEvents = "all"; // you can click on the buttons again
+            document.addEventListener("keydown", handleFontClick);
         } else {
             sizeBtn.style.backgroundColor = "var(--buttonColor)";
+            sizeClicked = !sizeClicked; // fixes the sizeClicked variable to show correctly
+            //document.removeEventListener("keydown", handleFontClick);
+            // this is in closeSize so that the event listener will close even if you click on the x button
+            range.blur();
+            closeSize();
         }
     }
-})
+}
+
+let closeSizeBtn = document.getElementById("close-textsize");
+closeSizeBtn.addEventListener("click", closeSize);
+
+function closeSize() {
+    let settingsPopup = document.getElementsByClassName("settings-popup")[0];
+
+    fontSizePopup.style.opacity = 0; // make popup close
+    body.style.pointerEvents="all"; // now you can click on everything again
+    fontSizePopup.style.pointerEvents = "none";
+    sizeClicked = !(sizeClicked); // unclick size button
+    sizeBtn.style.backgroundColor = "var(--buttonColor)"; 
+    settingsBtn.style.backgroundColor = "var(--buttonColor)";
+    settingsPopup.style.opacity = "0";
+    settingsClicked = !settingsClicked;
+    document.removeEventListener("keydown", handleFontClick);
+}
+
+//Customize text size
+// the scale function is:
+// num * (scalefactor)^index
+function scaleFunction (num, scalefactor, index)  {
+    return num * (scalefactor ** index)
+}
+const range = document.getElementById("size-input");
+range.addEventListener("input", () => {
+    let index = range.value;
+    const chatMessageSize = 15; // what user and bot chat messages are set to in the CSS
+    const inputMessageSize = 16; // what the chat input message is set to in the CSS
+    const scalefactor = 1.15;
+    let userChatMsg = document.querySelector(".chat-message.user");
+    let chatBoxMsg = document.querySelector(".chat-message.bot");
+    let userInputMsg = document.querySelector("#chat-input");
+
+    // handle input box first
+    if (userInputMsg) {
+        userInputMsg.style.fontSize = scaleFunction(inputMessageSize, scalefactor, index) + "px";
+    }
+
+    // handle chat messages next if they exist
+    if (userChatMsg && chatBoxMsg) {
+        userChatMsg.style.fontSize = scaleFunction(chatMessageSize, scalefactor, index) + "px";
+        chatBoxMsg.style.fontSize = scaleFunction(chatMessageSize, scalefactor, index) + "px";
+    }
+});
+
 
 document.addEventListener("DOMContentLoaded", function () {
     const newChatButton = document.getElementById("new-chat-btn"); // Select button by ID
