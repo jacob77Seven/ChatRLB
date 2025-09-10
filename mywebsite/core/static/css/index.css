@@ -402,7 +402,8 @@ main #inner .searchBox form button:hover{
 }
 
 /* chat appearance menu */
-main #inner #appearance-popup {
+main #inner #appearance-popup,
+main #inner #textsize-popup {
     position: fixed;
     bottom: 17.4%;
     left: 250px;
@@ -413,7 +414,8 @@ main #inner #appearance-popup {
     pointer-events: none; /*makes it so that you can't still click on it if its invisible */
 }
 
-main #inner #appearance-popup .appearance-header {
+main #inner #appearance-popup .appearance-header,
+main #inner #textsize-popup .textsize-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -422,7 +424,8 @@ main #inner #appearance-popup .appearance-header {
     font-size: 1em;
 }
 
-main #inner #appearance-popup .appearance-header #close-appearance {
+main #inner #appearance-popup .appearance-header #close-appearance,
+main #inner #textsize-popup .textsize-header #close-textsize {
     background: none;
     border: none;
     border: 1px solid var(--borderColor);
@@ -433,7 +436,8 @@ main #inner #appearance-popup .appearance-header #close-appearance {
     font-size: 1em;
 }
 
-main #inner #appearance-popup .appearance-header #close-appearance:hover {
+main #inner #appearance-popup .appearance-header #close-appearance:hover,
+main #inner #textsize-popup .textsize-header #close-textsize:hover {
     background-color: var(--mainColor);
     color: var(--textColor);
 }
@@ -496,6 +500,22 @@ input[type="radio"].toggle-appearance:checked + label::after {
 /* adds content before the selected label */
 input[type="radio"].toggle-appearance:checked + label::before {
     outline: 1px solid black;
+}
+
+/* Customize text size menu */
+main #inner #textsize-popup {
+    bottom: 14%;
+}
+
+main #inner #textsize-popup #textsize-menu {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 0;
+}
+
+input[type="range"]#size-input {
+    width: 90%;
 }
 
 .chat-messages {
