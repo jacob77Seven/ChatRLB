@@ -355,100 +355,105 @@ range.addEventListener("input", () => {
 
 
 document.addEventListener("DOMContentLoaded", function () {
-    const newChatButton = document.getElementById("new-chat-btn"); // Select button by ID
-    const chatContainer = document.getElementById("inner"); // Chat area
+  const newChatBtn   = document.getElementById("new-chat-btn");
+  const messagesEl   = document.getElementById("chat-messages");
+  const inputEl      = document.getElementById("chat-input");
+  const welcomeEl    = document.getElementById("welcome-text");
 
-    if (newChatButton) {
-        console.log(" New Chat button found!"); // Debugging
+  if (!newChatBtn) return;
 
-        newChatButton.addEventListener("click", function () {
-            console.log(" New Chat button clicked!"); // Debugging when clicked
+  newChatBtn.addEventListener("click", () => {
+    // (Optional) save current conversation here before clearing, if you want persistence
 
-            // Clear previous chat
-            chatContainer.innerHTML = "";
+    // Clear current messages only
+    messagesEl.innerHTML = "";
 
-            // Create new chat interface
-            const chatBox = document.createElement("div");
-            chatBox.classList.add("chat-box");
-
-            chatBox.innerHTML = `
-                <div class="new-chat-message">
-                    <p>Welcome! Start your conversation...</p>
-                </div>
-                <div class="searchBox">
-                    <form id="chat-form">
-                        <textarea id="chat-input" rows="1" placeholder="What does Jesus say about..."></textarea>
-                        <button type="submit"><i class="fa-solid fa-paper-plane"></i></button>
-                    </form>
-                </div>
-            `;
-            chatBox.style.width = "100%"; // this sets the width of the chatbox to the size of #inner block
-
-            chatContainer.appendChild(chatBox); // Add to main chat area
-            document.getElementById("chat-input").focus(); // Focus on input
-        });
-    } else {
-        console.log(" New Chat button NOT found!");
+    // Show the welcome text again if you want (or keep it hidden)
+    if (welcomeEl) {
+      welcomeEl.style.display = "block";
+      welcomeEl.textContent = ""; // reset typing text
+      // re-run the typing effect if desired:
+      typeWelcomeAgain(welcomeEl, "Welcome to ChatRLB!", 75);
     }
+
+    // Reset and focus input
+    inputEl.value = "";
+    inputEl.focus();
+
+    // Ensure the messages panel is scrolled to bottom (empty state)
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  });
+
+  function typeWelcomeAgain(node, msg, speedMs) {
+    let i = 0;
+    function step() {
+      if (i < msg.length) {
+        node.textContent += msg.charAt(i++);
+        setTimeout(step, speedMs);
+      }
+    }
+    step();
+  }
 });
 
+
 document.addEventListener("DOMContentLoaded", function () {
-    const chatContainer = document.getElementById("chat-messages"); // Where messages go
-    const chatForm = document.getElementById("chat-form");           // The chat form
-    const chatInput = document.getElementById("chat-input");         // Text input
+  const chatContainer = document.getElementById("chat-messages");
+  const chatForm      = document.getElementById("chat-form");
+  const chatInput     = document.getElementById("chat-input");
 
-    // Submit event for the chat form
-    chatForm.addEventListener("submit", async function (e) {
-        e.preventDefault(); // Prevent page reload
+  if (!chatForm || chatForm.dataset.bound === "1") return;
+  chatForm.dataset.bound = "1"; // prevent duplicate listeners
 
-        const message = chatInput.value.trim(); // Get user message
-        if (!message) return;
+  chatForm.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    const message = chatInput.value.trim();
+    if (!message) return;
 
-        appendMessage("user", message); // Show user message
-        chatInput.value = ""; // Clear input
+    appendMessage("user", message);
+    chatInput.value = "";
 
-        try {
-            const response = await fetch("/chatbot/", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRFToken": getCSRFToken() // CSRF token for Django
-                },
-                body: JSON.stringify({ message: message })
-            });
-
-            const data = await response.json();
-            appendMessage("bot", data.reply || "No response");
-        } catch (err) {
-            appendMessage("bot", "⚠️ Error: Could not contact server.");
-        }
-    });
-
-    // Append message to chat box
-    function appendMessage(sender, text) {
-        const welcome = document.querySelector("#welcome-text");
-        if (welcome) welcome.style.display = "none";
-    
-        const msg = document.createElement("div");
-        msg.classList.add("chat-message", sender); // user or bot
-        msg.innerHTML = `<p>${text}</p>`;
-        chatContainer.appendChild(msg);
-        chatContainer.scrollTop = chatContainer.scrollHeight; // Auto-scroll
+    try {
+      const response = await fetch("/chatbot/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCSRFToken()
+        },
+        body: JSON.stringify({ message })
+      });
+      const data = await response.json();
+      appendMessage("bot", data.reply || "No response");
+    } catch (err) {
+      appendMessage("bot", "⚠️ Error: Could not contact server.");
     }
+  });
 
-    // Read CSRF token from cookies (for Django security)
-    function getCSRFToken() {
-        let cookieValue = null;
-        const cookies = document.cookie.split(';');
-        for (let cookie of cookies) {
-            const trimmed = cookie.trim();
-            if (trimmed.startsWith("csrftoken=")) {
-                cookieValue = trimmed.substring("csrftoken=".length);
-                break;
-            }
-        }
-        return cookieValue;
+  function appendMessage(sender, text) {
+    const welcome = document.querySelector("#welcome-text");
+    if (welcome) welcome.style.display = "none";
+
+    const msg = document.createElement("div");
+    msg.classList.add("chat-message", sender);
+    msg.innerHTML = `<p>${text}</p>`;
+    chatContainer.appendChild(msg);
+
+    // Keep the newest message visible
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+  }
+
+  function getCSRFToken() {
+    let cookieValue = null;
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+      const trimmed = cookie.trim();
+      if (trimmed.startsWith("csrftoken=")) {
+        cookieValue = trimmed.substring("csrftoken=".length);
+        break;
+      }
     }
+    return cookieValue;
+  }
 });
 
 document.addEventListener("DOMContentLoaded", function () {
