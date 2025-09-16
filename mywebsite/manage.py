@@ -2,7 +2,14 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+from pathlib import Path
 
+# --- make top-level ChatRLB importable (so 'backend' resolves) ---
+BASE_DIR = Path(__file__).resolve().parent        # .../ChatRLB/mywebsite
+PROJECT_ROOT = BASE_DIR.parent                    # .../ChatRLB
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+# -----------------------------------------------------------------
 
 def main():
     """Run administrative tasks."""
@@ -16,7 +23,6 @@ def main():
             "forget to activate a virtual environment?"
         ) from exc
     execute_from_command_line(sys.argv)
-
 
 if __name__ == '__main__':
     main()

@@ -53,12 +53,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
 });
 
-// set main height here
-//let logo = document.getElementsByClassName("logo-container")[0];
-//const logoHeight = logo.offsetHeight;
-//let mainHeight = main.offsetHeight;
-//let newMainHeight = mainHeight - logoHeight;
-//main.style.setProperty('--box-height', newMainHeight + 'px');
 
 // settings button
 let settingsClicked = false; // track settings popup state
@@ -425,16 +419,23 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // Append message to chat box
-    function appendMessage(sender, text) {
-        const welcome = document.querySelector("#welcome-text");
-        if (welcome) welcome.style.display = "none";
-    
-        const msg = document.createElement("div");
-        msg.classList.add("chat-message", sender); // user or bot
-        msg.innerHTML = `<p>${text}</p>`;
-        chatContainer.appendChild(msg);
-        chatContainer.scrollTop = chatContainer.scrollHeight; // Auto-scroll
+ function appendMessage(sender, text) {
+  const welcome = document.querySelector("#welcome-text");
+  if (welcome) welcome.style.display = "none";
+
+  const msg = document.createElement("div");
+  msg.classList.add("chat-message", sender);
+  msg.innerHTML = `<p>${text}</p>`;
+  chatContainer.appendChild(msg);
+  chatContainer.scrollTop = chatContainer.scrollHeight;
+
+// Right after you append the AI bubble:
+    if (typeof window.readNewestAIMessage === 'function') {
+  window.readNewestAIMessage();
     }
+
+}
+
 
     // Read CSRF token from cookies (for Django security)
     function getCSRFToken() {
@@ -488,4 +489,115 @@ document.addEventListener('DOMContentLoaded', function () {
             popup.classList.add('hidden');
         }
     });
+});
+
+// === BACKEND ENDPOINTS ===
+const API_BASE = "/api/voice";
+
+// Run after DOM is ready so element lookups succeed
+document.addEventListener('DOMContentLoaded', () => {
+  // ===== Element lookups (prevents "ttsBtn is not defined")
+  const ttsBtn = document.getElementById('tts-btn');
+  const sttBtn = document.getElementById('stt-mic-btn');
+  const chatForm = document.getElementById('chat-form');
+  const chatInput = document.getElementById('chat-input');
+  const chatMessages = document.getElementById('chat-messages');
+
+  // ====== TTS (Text-to-Speech)
+  const canTTS = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+
+  // Define BEFORE any usage (prevents "Cannot access ... before initialization")
+  function speakText(text) {
+    if (!canTTS || !text) return;
+    try {
+      window.speechSynthesis.cancel();               // stop any current speech
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = 'en-US';
+      utter.rate = 1;                                 // tweak if you like
+      utter.pitch = 1;
+      window.speechSynthesis.speak(utter);
+    } catch (err) {
+      console.warn('TTS error:', err);
+    }
+  }
+
+ function getLastAIText() {
+  if (!chatMessages) return '';
+
+  // Prefer: AI messages that are not marked as errors
+  let nodes = chatMessages.querySelectorAll(
+    '.message.ai:not(.error) .text, .message.ai:not(.error)'
+  );
+
+  // If your markup doesn't tag errors with .error, fall back to *all* ai bubbles
+  if (!nodes.length) {
+    nodes = chatMessages.querySelectorAll('.message.ai .text, .message.ai');
+  }
+
+  // Walk from the bottom up and skip anything that looks like an error
+  for (let i = nodes.length - 1; i >= 0; i--) {
+    const txt = (nodes[i].textContent || '').trim();
+    if (!txt) continue;
+    const looksLikeError = /^error\s*:/i.test(txt);
+    if (!looksLikeError) return txt;
+  }
+
+  // Fallback: last non-empty child text
+  const last = chatMessages.lastElementChild;
+  return last ? (last.textContent || '').trim() : '';
+}
+
+
+  // Click the speaker button -> read last AI response
+  if (ttsBtn) {
+    if (!canTTS) {
+      ttsBtn.disabled = true;
+      ttsBtn.title = 'Text-to-speech not supported in this browser';
+    } else {
+      ttsBtn.addEventListener('click', () => {
+        speakText(getLastAIText());
+      });
+    }
+  }
+
+  // Optional helper you can call right after you append an AI message
+  // Example usage wherever you append: window.readNewestAIMessage();
+  window.readNewestAIMessage = function () {
+    speakText(getLastAIText());
+  };
+
+  // ====== STT (Speech-to-Text) — simple, click to dictate into #chat-input
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (sttBtn) {
+    if (!SpeechRecognition) {
+      sttBtn.disabled = true;
+      sttBtn.title = 'Speech-to-text not supported in this browser';
+    } else {
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'en-US';
+      recognition.interimResults = false;  // set true if you want live partials
+      recognition.continuous = false;
+
+      recognition.onresult = (evt) => {
+        const transcript = evt.results?.[0]?.[0]?.transcript || '';
+        if (transcript && chatInput) {
+          chatInput.value = transcript;
+          // If you want auto-submit after speaking, uncomment:
+          // chatForm?.requestSubmit();
+        }
+      };
+
+      recognition.onerror = (e) => console.warn('STT error:', e);
+      recognition.onend = () => { sttBtn.ariaPressed = 'false'; };
+
+      sttBtn.addEventListener('click', () => {
+        try {
+          sttBtn.ariaPressed = 'true';
+          recognition.start();
+        } catch (err) {
+          console.warn('STT start failed:', err);
+        }
+      });
+    }
+  }
 });

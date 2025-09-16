@@ -2,10 +2,12 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
-from ollama import chat
-from ollama import ChatResponse
+#from ollama import chat
+#from ollama import ChatResponse
 from .backend.chatbot import *
 from django.conf import settings
+
+from core.backend.voice_service.ollama_voice import query_ollama
 
 # Create your views here.
 from django.shortcuts import render

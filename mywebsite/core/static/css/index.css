@@ -685,3 +685,6 @@ input[type="range"]#size-input {
     line-height: 1.6;
     margin-bottom: 15px;
 }
+/* mic “recording” state */
+.icon-btn.recording { animation: pulse 1s infinite; }
+@keyframes pulse { 0%{transform:scale(1)} 50%{transform:scale(1.06)} 100%{transform:scale(1)} }

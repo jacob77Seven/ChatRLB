@@ -122,7 +122,7 @@
                     {% csrf_token %}  
     
                     <textarea id="chat-input" rows="1" placeholder="What does Jesus say about..."></textarea>
-                    <button type="button" id="tts-btn" class="icon-btn" title="Text-To-Speech"><i class="fa-solid fa-volume-high"></i></button>
+                    <button type="button" id="tts-btn" aria-label="Read last AI response" title="Text-To-Speech"><i class="fa-solid fa-volume-high"></i></button>
                     <button type="button" id="stt-mic-btn" class="icon-btn" title="Speech-To-Text"><i class="fa-solid fa-microphone"></i></button>
                     <button type="submit" class="icon-btn" title="Enter"><i class="fa-solid fa-paper-plane"></i></button>
                 </form>

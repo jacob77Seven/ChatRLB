@@ -120,9 +120,17 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'core' / 'static']
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+VOICE = {
+    "STT_BACKEND": "vosk",     # or whisper/google/etc.
+    "TTS_BACKEND": "pyttsx3",  # or edge-tts/gtts
+    "VOSK_MODEL_DIR": "backend/voice_service/models/vosk-en-us",
+}
