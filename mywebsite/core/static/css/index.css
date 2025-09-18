@@ -685,3 +685,23 @@ input[type="range"]#size-input {
     line-height: 1.6;
     margin-bottom: 15px;
 }
+
+/* Make the inner container a flex column */
+#inner {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* ensures it fills screen height */
+}
+
+/* Let messages grow/shrink to fill available space */
+#chat-messages {
+  flex: 1 1 auto;
+  height: auto;  /* overrides the fixed height if both exist */
+  overflow-y: auto;
+}
+
+/* Keep input row anchored at the bottom */
+.searchBox {
+  flex: 0 0 auto;
+  margin-top: 10px;
+}
