@@ -694,11 +694,11 @@ input[type="range"]#size-input {
 }
 
 /* Let messages grow/shrink to fill available space */
-#chat-messages {
+/*#chat-messages {
   flex: 1 1 auto;
-  height: auto;  /* overrides the fixed height if both exist */
+  height: auto;   overrides the fixed height if both exist
   overflow-y: auto;
-}
+}*/
 
 /* Keep input row anchored at the bottom */
 .searchBox {
