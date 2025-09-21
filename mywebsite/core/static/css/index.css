@@ -705,3 +705,10 @@ input[type="range"]#size-input {
   flex: 0 0 auto;
   margin-top: 10px;
 }
+
+.history-entry {
+    display: flex;
+    justify-content: space-between;
+    cursor: pointer;
+    border-bottom: 1px solid var(--borderColor);
+}

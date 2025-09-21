@@ -1,6 +1,7 @@
 
 let main = document.getElementsByTagName("main")[0];
 let body = document.getElementsByTagName("body")[0];
+const history = JSON.parse(localStorage.getItem('history')) || [];
 
 document.addEventListener("DOMContentLoaded", function() {
     let aside = document.getElementsByTagName("aside")[0];
@@ -23,7 +24,6 @@ document.addEventListener("DOMContentLoaded", function() {
             main.style.marginLeft = "260px"; // Adjust main content
         }
         isSidebarOpen = !isSidebarOpen; // Toggle state
-        console.log("sidebar open normal : " + isSidebarOpen);
     });
 
     /* can make function look nicer later */
@@ -42,7 +42,6 @@ document.addEventListener("DOMContentLoaded", function() {
             main.style.marginLeft = "260px"; // Adjust main content
         }
         isSidebarOpen = !isSidebarOpen;
-        console.log("media query sidebar open: " + isSidebarOpen);
     }
     let mediaQuery = window.matchMedia("(max-width: 700px"); // create MediaQueryList object
     changeMediaQuery(mediaQuery); // call listener function at runtime
@@ -120,7 +119,6 @@ appearanceBtn.addEventListener("click", handleAppearance);
 function handleAppearance() {
     if (settingsClicked) {
         appearanceClicked = !appearanceClicked;
-        console.log("appearanceClicked outside if statement: " + appearanceClicked);
 
         if (appearanceClicked) {
             appearanceBtn.style.backgroundColor = "var(--mainColor)";
@@ -154,7 +152,6 @@ function closeAppearance() {
     settingsBtn.style.backgroundColor = "var(--buttonColor)";
     settingsPopup.style.opacity = "0";
     settingsClicked = !settingsClicked;
-    console.log("in closed appearance");
     document.removeEventListener("keydown", handleClick);
 }
 
@@ -276,7 +273,7 @@ sizeBtn.addEventListener('mouseout', () => {
 
 function handleFontClick(event) {
     range.focus();
-    console.log("handleFontClick : " + event.key);
+    //console.log("handleFontClick : " + event.key);
 
     if (event.key === "Enter") {
         handleTextSize();
@@ -288,7 +285,6 @@ sizeBtn.addEventListener("click", handleTextSize);
 function handleTextSize() {
     if (settingsClicked) {
         sizeClicked = !sizeClicked;
-        console.log("size click before if statement: " + sizeClicked);
 
         if (sizeClicked) {
             sizeBtn.style.backgroundColor = "var(--mainColor)";
@@ -313,7 +309,6 @@ closeSizeBtn.addEventListener("click", closeSize);
 
 function closeSize() {
     let settingsPopup = document.getElementsByClassName("settings-popup")[0];
-
     fontSizePopup.style.opacity = 0; // make popup close
     body.style.pointerEvents="all"; // now you can click on everything again
     fontSizePopup.style.pointerEvents = "none";
@@ -382,6 +377,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Ensure the messages panel is scrolled to bottom (empty state)
     messagesEl.scrollTop = messagesEl.scrollHeight;
+
+    // Update global variable so that chat history still works when new chat button clicked
+    hasChattedOnce = false;
   });
 
   function typeWelcomeAgain(node, msg, speedMs) {
@@ -396,6 +394,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
+let hasChattedOnce = false; // Global so that it can change when new chat button is pressed.
 
 document.addEventListener("DOMContentLoaded", function () {
   const chatContainer = document.getElementById("chat-messages");
@@ -424,6 +423,39 @@ document.addEventListener("DOMContentLoaded", function () {
       });
       const data = await response.json();
       appendMessage("bot", data.reply || "No response");
+
+      // create message object to store message
+      const messageSet = {
+        question: message,
+        chatResponse: data.reply
+      };
+      //console.log(messageSet);
+      //console.log("hasChattedOnce? " + hasChattedOnce);
+
+      if (hasChattedOnce === false) {
+        // first time chatting
+        const chatHistoryEntry = extractMainIdea(data.reply);
+        const chatHistoryDate = new Date().toLocaleString('en-US', { month: 'short', day: '2-digit'});
+        // create history object to store history, date, and messages
+        const historyObject = {
+            keyword: chatHistoryEntry,
+            date: chatHistoryDate,
+            messages: [messageSet]
+        };
+        //console.log(historyObject);
+        history.push(historyObject);
+        localStorage.setItem('history', JSON.stringify(history));
+        createHistory(history[history.length - 1].keyword, history[history.length -1].date); // call global function
+        hasChattedOnce = !hasChattedOnce; // only run the if block for the first message
+
+      } else {
+        // stored in same history object
+        history[history.length - 1].messages.push(messageSet);
+        localStorage.setItem('history', JSON.stringify(history))
+        //console.log(history);
+        //console.log(history.length);
+        
+      }
     } catch (err) {
       appendMessage("bot", "⚠️ Error: Could not contact server.");
     }
@@ -454,6 +486,32 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     return cookieValue;
   }
+
+  // sometimes it can return unlikely words
+  // if word returned that is undesired, add it to the set of stopWords (for right now)
+  function extractMainIdea(text) {
+    const stopWords = new Set(["the", "a", "an", "is", "of", "and", "in", "to", "for", "on", "with", "as", "at", "about", "you", "this", "that", "he"]);
+    const words = text.toLowerCase().match(/\b[a-zA-Z\'\’]+\b/g); // Tokenize and convert to lowercase
+    const wordCounts = {};
+
+    // Don't include the stopwords
+    for (const word of words) {
+        if (!stopWords.has(word)) {
+            wordCounts[word] = (wordCounts[word] || 0) + 1;
+        }
+    }
+    //console.log(wordCounts);
+
+    // Sort by frequency (descending order)
+    const sortedKeywords = Object.entries(wordCounts)
+    .sort(([, countA], [, countB]) => countB - countA)
+    .map(([word]) => word);
+
+    //console.log(sortedKeywords);
+    const topWord = sortedKeywords[0]; // Get most frequent word
+    return topWord.charAt(0).toUpperCase() + topWord.slice(1); // Return most frequent word capitalized
+    }
+
 });
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -494,3 +552,67 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 });
+
+// used for both loading the chat history when the browser opens and every time a new history is added
+function createHistory(keyword, date) {
+    let histPlaceHolder = document.getElementById("hist-placeholder");
+    if (histPlaceHolder) histPlaceHolder.style.display = "none";
+    const newHist = document.createElement('span');
+    const keywordP = document.createElement('p');
+    keywordP.textContent = `${keyword}`;
+    keywordP.classList.add('hist-kw');
+    const keywordD = document.createElement('p');
+    keywordD.textContent = `${date}`
+    newHist.classList.add('history-entry');
+    newHist.appendChild(keywordP);
+    newHist.appendChild(keywordD);
+    histPlaceHolder.insertAdjacentElement("afterend", newHist); // add most recent to top
+}
+
+// loading chat history as soon as the browser loads
+document.addEventListener("DOMContentLoaded", function() {
+    for (i=0; i<history.length; i++) {
+        createHistory(history[i].keyword, history[i].date);
+    }
+})
+
+document.addEventListener("DOMContentLoaded", function() {
+    const chatContainer = document.getElementById("chat-messages");
+    document.querySelectorAll(".history-entry").forEach((entry) => {
+        entry.addEventListener("click", () => {
+            const histKw = entry.querySelector(".hist-kw");
+        
+            if (histKw) {
+                const text = histKw.textContent.trim();
+                // search if any of the keywords in history match the text in the sidebar
+                const match = history.find(h => h.keyword === text);
+
+                // clear chat before loading so that the wrong chats won't load on top of eachother
+                chatContainer.innerHTML = "";
+
+                if (match) {
+                    for (let i=0; i < match.messages.length; i++){
+                        addHistoryMessage("user", match.messages[i].question);
+                        addHistoryMessage("bot", match.messages[i].chatResponse);
+                    }
+                } else {
+                    console.log("No history found for:", keyword);
+                }
+            } 
+        });
+    });
+
+    // load the chat messages back
+    function addHistoryMessage(sender, text) {
+        const welcome = document.querySelector("#welcome-text");
+
+        if (welcome) welcome.style.display = "none";
+        const msg = document.createElement("div");
+        msg.classList.add("chat-message", sender);
+        msg.innerHTML = `<p>${text}</p>`;
+        chatContainer.appendChild(msg);
+
+        // Keep the newest message visible
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+  }
+})
