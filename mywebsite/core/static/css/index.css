@@ -690,15 +690,16 @@ input[type="range"]#size-input {
 #inner {
   display: flex;
   flex-direction: column;
-  min-height: 100vh; /* ensures it fills screen height */
+  /*min-height: 100vh;  ensures it fills screen height */
+  height: 100%;
 }
 
 /* Let messages grow/shrink to fill available space */
-/*#chat-messages {
+#chat-messages {
   flex: 1 1 auto;
-  height: auto;   overrides the fixed height if both exist
+  /*height: auto;   overrides the fixed height if both exist*/
   overflow-y: auto;
-}*/
+}
 
 /* Keep input row anchored at the bottom */
 .searchBox {
@@ -711,4 +712,9 @@ input[type="range"]#size-input {
     justify-content: space-between;
     cursor: pointer;
     border-bottom: 1px solid var(--borderColor);
+}
+
+.history-entry:hover {
+    background-color: var(--mainColor);
+    color: var(--headingColor);
 }
