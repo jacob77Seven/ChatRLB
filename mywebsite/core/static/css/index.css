@@ -710,11 +710,40 @@ input[type="range"]#size-input {
 .history-entry {
     display: flex;
     justify-content: space-between;
-    cursor: pointer;
     border-bottom: 1px solid var(--borderColor);
+    padding: 10px;
+}
+
+.hist-kw {
+    cursor: pointer;
+}
+
+#hist-placeholder {
+    padding-top: 10px;
 }
 
 .history-entry:hover {
     background-color: var(--mainColor);
     color: var(--headingColor);
+}
+
+#chat-history {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+    scrollbar-color: grey var(--asideColor); /* for firefox */
+}
+
+/* for chrome, edge, safari*/
+#chat-history::-webkit-scrollbar {
+    width: 10px;
+}
+
+#chat-history::-webkit-scrollbar-track {
+    background: var(--asideColor);
+}
+
+#chat-history::-webkit-scrollbar-thumb {
+    background-color: grey;
+    border-radius: 5px;
 }

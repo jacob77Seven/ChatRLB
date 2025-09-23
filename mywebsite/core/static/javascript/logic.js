@@ -176,7 +176,7 @@ darkModeBox.addEventListener("change", () => {
         root.style.setProperty('--buttonColor', '#40414f');
         root.style.setProperty('--headingColor', 'rgb(255,255,255)');
         root.style.setProperty('--mainColor', 'var(--brand-blue)');
-        profileBox.style.border = 'none';
+        profileBox.style.border = '1px solid var(--borderColor)';
         logoImg.style.filter = 'brightness(1) invert(0)'; // default for image
         logoBox.style.backgroundColor = 'rgb(60, 60, 73)';
         logoBox.style.borderBottom = 'none';
@@ -189,7 +189,7 @@ darkModeBox.addEventListener("change", () => {
         root.style.setProperty('--ColorUser', 'white');
         root.style.setProperty('--borderUser', 'none');
  
-        root.style.setProperty('--backgroundColorBot', 'var(--brand-blue)');
+        root.style.setProperty('--backgroundColorBot', '#2D5D5D');
         root.style.setProperty('--ColorBot', 'white');
         root.style.setProperty('--borderBot', 'none');
     }
@@ -244,8 +244,8 @@ contrastModeBox.addEventListener("change", () => {
 
         // for chat messages
         root.style.setProperty('--backgroundColorUser', 'black');
-        root.style.setProperty('--ColorUser', 'var(--brand-red)');
-        root.style.setProperty('--borderUser', '1px solid var(--brand-red)');
+        root.style.setProperty('--ColorUser', '#F16F7C');
+        root.style.setProperty('--borderUser', '1px solid #F16F7C');
 
         root.style.setProperty('--backgroundColorBot', 'black');
         root.style.setProperty('--ColorBot', 'var(--brand-blue)');
@@ -445,13 +445,26 @@ document.addEventListener("DOMContentLoaded", function () {
         //console.log(historyObject);
         history.push(historyObject);
         localStorage.setItem('history', JSON.stringify(history));
-        createHistory(history[history.length - 1].keyword, history[history.length -1].date); // call global function
+        createHistory(history[history.length - 1].keyword, history[history.length - 1].date); // call global function
+        loadHistory();
+        // for being able to recall the history of the recent chats
+        /*let histEnt = document.querySelector(".history-entry");
+        let keyWordEnt = histEnt.querySelector(".hist-kw"); // get top keyword
+        keyWordEnt.addEventListener("click", () => {
+            let lenMessages = history[history.length - 1].messages.length;
+            chatContainer.innerHTML = "";
+            for (let item=0; item < lenMessages; item++){
+                appendMessage("user", history[history.length - 1].messages[item].question);
+                appendMessage("bot", history[history.length - 1].messages[item].chatResponse);
+            }
+        })*/
+
         hasChattedOnce = !hasChattedOnce; // only run the if block for the first message
 
       } else {
         // stored in same history object
         history[history.length - 1].messages.push(messageSet);
-        localStorage.setItem('history', JSON.stringify(history))
+        localStorage.setItem('history', JSON.stringify(history));
         //console.log(history);
         //console.log(history.length);
         
@@ -490,7 +503,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // sometimes it can return unlikely words
   // if word returned that is undesired, add it to the set of stopWords (for right now)
   function extractMainIdea(text) {
-    const stopWords = new Set(["the", "a", "an", "is", "of", "and", "in", "to", "for", "on", "with", "as", "at", "about", "you", "this", "that", "he"]);
+    const stopWords = new Set(["the", "a", "an", "is", "of", "and", "in", "to", "for", "on", "with", "as", "at", "about", "you", "this", "that", "he", "not", "jesus", "god"]);
     const words = text.toLowerCase().match(/\b[a-zA-Z\'\’]+\b/g); // Tokenize and convert to lowercase
     const wordCounts = {};
 
@@ -574,15 +587,16 @@ document.addEventListener("DOMContentLoaded", function() {
     for (i=0; i<history.length; i++) {
         createHistory(history[i].keyword, history[i].date);
     }
-})
+});
 
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", loadHistory);
+
+function loadHistory() {
     const chatContainer = document.getElementById("chat-messages");
     document.querySelectorAll(".history-entry").forEach((entry) => {
-        entry.addEventListener("click", () => {
-            const histKw = entry.querySelector(".hist-kw");
-        
-            if (histKw) {
+        const histKw = entry.querySelector(".hist-kw");
+        if (histKw) {
+            histKw.addEventListener("click", () => {
                 const text = histKw.textContent.trim();
                 // search if any of the keywords in history match the text in the sidebar
                 const match = history.find(h => h.keyword === text);
@@ -596,10 +610,10 @@ document.addEventListener("DOMContentLoaded", function() {
                         addHistoryMessage("bot", match.messages[i].chatResponse);
                     }
                 } else {
-                    console.log("No history found for:", keyword);
+                    console.log("No history found");
                 }
-            } 
-        });
+            }); 
+        };
     });
 
     // load the chat messages back
@@ -615,4 +629,4 @@ document.addEventListener("DOMContentLoaded", function() {
         // Keep the newest message visible
         chatContainer.scrollTop = chatContainer.scrollHeight;
   }
-})
+};
