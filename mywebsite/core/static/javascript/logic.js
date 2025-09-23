@@ -447,17 +447,6 @@ document.addEventListener("DOMContentLoaded", function () {
         localStorage.setItem('history', JSON.stringify(history));
         createHistory(history[history.length - 1].keyword, history[history.length - 1].date); // call global function
         loadHistory();
-        // for being able to recall the history of the recent chats
-        /*let histEnt = document.querySelector(".history-entry");
-        let keyWordEnt = histEnt.querySelector(".hist-kw"); // get top keyword
-        keyWordEnt.addEventListener("click", () => {
-            let lenMessages = history[history.length - 1].messages.length;
-            chatContainer.innerHTML = "";
-            for (let item=0; item < lenMessages; item++){
-                appendMessage("user", history[history.length - 1].messages[item].question);
-                appendMessage("bot", history[history.length - 1].messages[item].chatResponse);
-            }
-        })*/
 
         hasChattedOnce = !hasChattedOnce; // only run the if block for the first message
 
