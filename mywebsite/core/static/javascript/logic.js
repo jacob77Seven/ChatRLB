@@ -400,6 +400,14 @@ document.addEventListener("DOMContentLoaded", function () {
   const chatContainer = document.getElementById("chat-messages");
   const chatForm      = document.getElementById("chat-form");
   const chatInput     = document.getElementById("chat-input");
+  // Allow Enter to submit the chat (and Shift+Enter to add a new line)
+chatInput.addEventListener("keydown", function (e) {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();       // stop newline
+    chatForm.requestSubmit(); // triggers the form's submit event
+  }
+});
+
 
   if (!chatForm || chatForm.dataset.bound === "1") return;
   chatForm.dataset.bound = "1"; // prevent duplicate listeners
