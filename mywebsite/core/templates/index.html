@@ -46,8 +46,10 @@
                     <button id="new-chat-btn"><i class="fa-solid fa-plus"></i> New Chat</button>
                 </div>
                 <p> History </p>
-                <hr>
-                <p> Start a new chat to begin...</p>
+                <section id="chat-history">
+                    <hr>
+                    <p id="hist-placeholder"> Start a new chat to begin...</p>
+                </section>
 
                 <div class="bottom">
 
@@ -87,7 +89,7 @@
             <section id="appearance-popup">
                 <div class="appearance-header">
                     <p>Chat Appearance</p>
-                    <button id="close-appearance">&#10005;</button>
+                    <button id="close-appearance" title="Close">&#10005;</button>
                 </div>
                 <form id="appearance-menu" action="">
                     <div class="appearance-opt-sect">
@@ -108,7 +110,7 @@
             <section id="textsize-popup">
                 <div class="textsize-header">
                     <p>Customize Text size</p>
-                    <button id="close-textsize">&#10005;</button>
+                    <button id="close-textsize" title="Close">&#10005;</button>
                 </div>
                 <form action="" id="textsize-menu">
                     <input type="range" id="size-input" min="0" max="5" value="0"/>
