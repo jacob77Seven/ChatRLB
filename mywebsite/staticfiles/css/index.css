@@ -699,3 +699,22 @@ input[type="radio"].toggle-appearance:checked + label::before {
 .icon-btn.send:hover {
   filter: brightness(0.95);
 }
+
+/* Button states for TTS/STT */
+.icon-btn.is-reading,
+.icon-btn.is-listening { width: auto; padding: 0 10px; }
+
+#tts-btn.is-reading::after {
+  content: " Reading…";
+  margin-left: 6px; font-size: 12px; opacity: 0.9;
+}
+#stt-mic-btn.is-listening::after {
+  content: " Listening…";
+  margin-left: 6px; font-size: 12px; opacity: 0.9;
+}
+.icon-btn.is-reading,
+.icon-btn.is-listening {
+  outline: 2px solid rgba(0,0,0,0.1);
+  animation: btnPulse 1.2s ease-in-out infinite;
+}
+@keyframes btnPulse { 0%{transform:scale(1)} 50%{transform:scale(1.04)} 100%{transform:scale(1)} }

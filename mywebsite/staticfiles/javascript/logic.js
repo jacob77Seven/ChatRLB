@@ -497,22 +497,18 @@ function speak(text) {
   }
 }
 
-// Toggle voice; when turning ON, read the most recent bot message immediately
+// Click = read last BOT message (never the user's text)
 ttsBtn.addEventListener("click", () => {
-  ttsEnabled = !ttsEnabled;
-  ttsBtn.innerHTML = ttsEnabled
-    ? '<i class="fa-solid fa-volume-high"></i>'
-    : '<i class="fa-solid fa-volume-xmark"></i>';
-  console.log("[TTS] toggled:", ttsEnabled ? "ON" : "OFF");
-
-  if (!ttsEnabled && hasTTS) window.speechSynthesis.cancel();
-  if (ttsEnabled) {
-    const scope = container || document.getElementById("chat-messages") || document.getElementById("inner") || document.body;
-    const lastBot = Array.from(scope.querySelectorAll(".chat-message.bot")).pop();
-    const text = lastBot?.textContent?.trim();
-    if (text) speak(text);
+  if (!hasTTS) return;
+  const scope = container || document.getElementById("chat-messages") || document.body;
+  const lastBot = Array.from(scope.querySelectorAll(".chat-message.bot")).pop();
+  const text = lastBot?.textContent?.trim();
+  if (text) {
+    ttsEnabled = true; // ensure enabled for this play
+    speak(text);
   }
 });
+
 
 // Auto-speak future bot replies
 const ttsObserver = new MutationObserver((mutations) => {
@@ -601,6 +597,7 @@ if (hasSTT) {
     const message = input.value.trim();
     if (!message) return;
 
+    if (hasTTS) window.speechSynthesis.cancel();
     appendMessage("user", message);
     input.value = "";
 
@@ -618,8 +615,146 @@ if (hasSTT) {
   });
 }
 
+/* ===== BOT-ONLY TTS + BUTTON STATES (hard guard) ===== */
+(function botOnlyTTS() {
+  const messagesEl = document.getElementById("chat-messages") || document.body;
+  const ttsBtn = document.getElementById("tts-btn");
+  const micBtn = document.getElementById("stt-mic-btn");
+  const synth  = window.speechSynthesis;
 
+  // --- A. Cancel ANY speech when a USER message is added (ultimate guard) ---
+  if (messagesEl && synth) {
+    new MutationObserver((muts) => {
+      for (const m of muts) for (const n of m.addedNodes) {
+        if (n.nodeType !== 1) continue;
+        if (n.classList?.contains("chat-message") && n.classList.contains("user")) {
+          // If something tried to read the user's text, kill it instantly.
+          synth.cancel();
+        }
+      }
+    }).observe(messagesEl, { childList: true, subtree: true });
+  }
 
+  // --- B. Speaker button: only replay the LAST BOT message, never the input ---
+  if (ttsBtn && synth) {
+    ttsBtn.addEventListener("click", () => {
+      // If already speaking, a second click stops
+      if (synth.speaking) {
+        synth.cancel();
+        ttsBtn.classList.remove("is-reading");
+        ttsBtn.setAttribute("aria-pressed", "false");
+        ttsBtn.title = "Read last bot reply";
+        return;
+      }
+      const lastBot = Array.from(messagesEl.querySelectorAll(".chat-message.bot")).pop();
+      const text = lastBot?.textContent?.trim();
+      if (!text) return;
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = "en-US";
+      u.onstart = () => {
+        ttsBtn.classList.add("is-reading");
+        ttsBtn.setAttribute("aria-pressed", "true");
+        ttsBtn.title = "Reading… click to stop";
+      };
+      const clear = () => {
+        ttsBtn.classList.remove("is-reading");
+        ttsBtn.setAttribute("aria-pressed", "false");
+        ttsBtn.title = "Read last bot reply";
+      };
+      u.onend = clear; u.onerror = clear;
+      synth.speak(u);
+    });
+  }
 
+  // --- C. Mic visual state (Listening…) synced to your existing class 'listening' ---
+  if (micBtn) {
+    const sync = () => {
+      const on = micBtn.classList.contains("listening");
+      micBtn.classList.toggle("is-listening", on);
+      micBtn.setAttribute("aria-pressed", on ? "true" : "false");
+      micBtn.title = on ? "Listening… click to stop" : "Start voice input";
+    };
+    new MutationObserver(sync).observe(micBtn, { attributes: true, attributeFilter: ["class"] });
+    sync();
+  }
 
+  // --- D. Extra safety: cancel speech as soon as the user submits the form ---
+  const form = document.getElementById("chat-form");
+  if (form && synth) {
+    form.addEventListener("submit", () => synth.cancel(), { capture: true });
+  }
 
+  console.log("[patch] bot-only TTS guards active");
+})();
+
+/* ===== HARD BLOCK: speak only bot replies ===== */
+(function hardMuteUserTTS() {
+  const synth = window.speechSynthesis;
+  if (!synth) return;
+
+  // Save the original speak
+  const _speak = synth.speak.bind(synth);
+  let allowSpeak = false; // only true when we intentionally read a bot reply
+
+  // Wrap speechSynthesis.speak so random calls can't read user text
+  synth.speak = function(utter) {
+    if (!allowSpeak) {
+      // Block any accidental/non-bot attempts
+      try { synth.cancel(); } catch {}
+      return;
+    }
+    _speak(utter);
+  };
+
+  // Helper to play BOT text only (temporarily enables speak)
+  function playBot(text) {
+    if (!text) return;
+    allowSpeak = true;
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "en-US";
+    u.onend = u.onerror = () => { allowSpeak = false; };
+    _speak(u); // call the original
+  }
+  window.playBot = playBot; // optional: for manual replay
+
+  const messages = document.getElementById("chat-messages") || document.body;
+  const ttsBtn = document.getElementById("tts-btn");
+  const form   = document.getElementById("chat-form");
+
+  // 1) AUTO: whenever a BOT message node appears, read it
+  new MutationObserver((muts) => {
+    for (const m of muts) for (const n of m.addedNodes) {
+      if (n.nodeType !== 1) continue;
+      if (n.classList?.contains("chat-message") && n.classList.contains("bot")) {
+        const text = n.textContent?.trim();
+        if (text) playBot(text);
+      }
+    }
+  }).observe(messages, { childList: true, subtree: true });
+
+  // 2) GUARD: if a USER message is added or the user submits, cancel speech
+  new MutationObserver((muts) => {
+    for (const m of muts) for (const n of m.addedNodes) {
+      if (n.nodeType !== 1) continue;
+      if (n.classList?.contains("chat-message") && n.classList.contains("user")) {
+        try { synth.cancel(); } catch {}
+        allowSpeak = false;
+      }
+    }
+  }).observe(messages, { childList: true, subtree: true });
+
+  form?.addEventListener("submit", () => {
+    try { synth.cancel(); } catch {}
+    allowSpeak = false;
+  }, { capture: true });
+
+  // 3) REPLAY: 🔊 button reads the last BOT message only; click again to stop
+  ttsBtn?.addEventListener("click", () => {
+    if (synth.speaking) { synth.cancel(); allowSpeak = false; return; }
+    const lastBot = Array.from((messages).querySelectorAll(".chat-message.bot")).pop();
+    const text = lastBot?.textContent?.trim();
+    if (text) playBot(text);
+  });
+
+  console.log("[voice] hard bot-only TTS active");
+})();
