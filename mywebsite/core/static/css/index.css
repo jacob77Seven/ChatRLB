@@ -747,3 +747,28 @@ input[type="range"]#size-input {
     background-color: grey;
     border-radius: 5px;
 }
+
+/* Study Mode chips bar */
+.study-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0 8px;
+}
+.study-bar.hidden { display: none; }
+
+.chip {
+  background: var(--buttonColor);
+  border: 1px solid var(--borderColor);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--headingColor);
+}
+.chip:hover { background: var(--mainColor); color: var(--headingColor); }
+
+
+
+/* Give the chat area some right margin so it doesn't sit under notes panel */
+main #inner { margin-right: 30%; }  /* quick demo spacing */

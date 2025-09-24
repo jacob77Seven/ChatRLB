@@ -1,3 +1,30 @@
+// --- Demo: hard-coded verse suggestions ---
+const DEMO_VERSES = [
+  {
+    ref: "John 3:3",
+    text: "Jesus answered, “Truly, truly, I say to you, unless one is born again he cannot see the kingdom of God.”",
+    notes: [
+      "Jesus speaks to Nicodemus about new birth.",
+      "Introduces the theme of spiritual rebirth.",
+    ]
+  },
+  {
+    ref: "Luke 11:1-4",
+    text: "The Lord’s Prayer: Jesus teaches how to pray.",
+    notes: [
+      "A model for prayer priorities (God’s name, kingdom, daily needs, forgiveness).",
+    ]
+  },
+  {
+    ref: "John 17:20-21",
+    text: "Jesus prays for future believers to be one.",
+    notes: [
+      "Unity is a witness to the world.",
+      "Prayer shows Jesus’ heart for the church.",
+    ]
+  }
+];
+
 
 let main = document.getElementsByTagName("main")[0];
 let body = document.getElementsByTagName("body")[0];
@@ -627,3 +654,79 @@ function loadHistory() {
         chatContainer.scrollTop = chatContainer.scrollHeight;
   }
 };
+
+//DEMO
+document.addEventListener('DOMContentLoaded', function () {
+  const studyBtn   = document.getElementById('study-toggle');
+  const bar        = document.getElementById('study-bar');
+  //const notesList  = document.getElementById('notes-list');
+
+  const vm         = document.getElementById('verseModal');
+  const vmClose    = document.getElementById('verseModal-close');
+  const vmRef      = document.getElementById('vm-ref');
+  const vmText     = document.getElementById('vm-text');
+  const vmNotes    = document.getElementById('vm-notes');
+
+  let studyOn = false;
+
+  function renderChips(verses) {
+    bar.innerHTML = '';
+    verses.forEach(v => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'chip';
+      chip.textContent = v.ref;
+      chip.addEventListener('click', () => openVerse(v));
+      bar.appendChild(chip);
+    });
+  }
+
+  function openVerse(v) {
+    // fill modal
+    vmRef.textContent  = v.ref;
+    vmText.textContent = v.text;
+    vmNotes.innerHTML  = '';
+    v.notes.forEach(n => {
+      const li = document.createElement('li');
+      li.textContent = n;
+      vmNotes.appendChild(li);
+    });
+
+    
+
+    // show modal
+    vm.classList.remove('hidden');
+  }
+
+  function closeVerseModal() { vm.classList.add('hidden'); }
+  vmClose.addEventListener('click', closeVerseModal);
+  window.addEventListener('click', (e) => { if (e.target === vm) closeVerseModal(); });
+  window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !vm.classList.contains('hidden')) closeVerseModal(); });
+
+  // Toggle Study Mode
+  if (studyBtn) {
+    studyBtn.addEventListener('click', () => {
+      studyOn = !studyOn;
+      studyBtn.style.backgroundColor = studyOn ? 'var(--mainColor)' : 'var(--buttonColor)';
+      bar.classList.toggle('hidden', !studyOn);
+
+      if (studyOn) {
+        renderChips(DEMO_VERSES);
+      } else {
+        bar.innerHTML = '';
+      }
+    });
+  }
+
+  // Optional: also show fresh chips after each user send (fake “AI suggestions”)
+  const chatForm  = document.getElementById('chat-form');
+  if (chatForm) {
+    chatForm.addEventListener('submit', () => {
+      if (studyOn) {
+        // For demo: re-render the same chips; later plug in real suggestions
+        renderChips(DEMO_VERSES);
+      }
+    });
+  }
+});
+

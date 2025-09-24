@@ -26,10 +26,8 @@
 
         <div class="profile-menu">
             <ul>
-                <li><a href="#">Sign In</a></li>
-                <li><a href="#">Create Account</a></li>
                 <li><a href="#" id="about-link">About Red Letter Basics</a></li>
-                <li><a href="#">Leave Us Feedback</a></li>
+                <li><a href="#" id="feedback-link">Leave Us Feedback</a></li>
             </ul>
         </div> 
 
@@ -44,6 +42,7 @@
             <header>
                 <div class="action-btns">
                     <button id="new-chat-btn"><i class="fa-solid fa-plus"></i> New Chat</button>
+                    <button id="study-toggle"><i class="fa-solid fa-book"></i> Study Mode</button> <!--DEMO-->
                 </div>
                 <p> History </p>
                 <section id="chat-history">
@@ -118,6 +117,9 @@
             </section>
 
             <div id="chat-messages" class="chat-messages"></div>
+            <!-- Study chips appear here when Study Mode is ON (DEMO) -->
+            <div id="study-bar" class="study-bar hidden"></div>
+
 
             <div class="searchBox">
                 <form id="chat-form" method="POST">
@@ -134,6 +136,7 @@
      
         
         </section>
+        
 
 
 
@@ -166,6 +169,18 @@
             Whether you're an individual, a family, or a church, Red Letter Basics is here to help you grow in your faith and deepen your relationship with Jesus.
         </p>
     </div>
+</div>
+
+<!-- Verse details modal DEMO-->
+<div id="verseModal" class="popup hidden" aria-modal="true" role="dialog">
+  <div class="popup-content">
+    <span id="verseModal-close" class="popup-close" aria-label="Close">&times;</span>
+    <h2 id="vm-ref"></h2>
+    <p id="vm-text" style="margin-top:8px;"></p>
+    <hr style="margin:14px 0;">
+    <h3>Notes</h3>
+    <ul id="vm-notes" style="padding-left:18px; color:#000;"></ul>
+  </div>
 </div>
 
 
