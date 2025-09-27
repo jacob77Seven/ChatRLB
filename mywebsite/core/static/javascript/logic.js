@@ -354,13 +354,14 @@ function scaleFunction (num, scalefactor, index)  {
     return num * (scalefactor ** index)
 }
 const range = document.getElementById("size-input");
+let scaledChatFontSize = 16 // storing chat message font size in global var so that you can reference it when creating chat bubbles
 range.addEventListener("input", () => {
     let index = range.value;
     const chatMessageSize = 15; // what user and bot chat messages are set to in the CSS
     const inputMessageSize = 16; // what the chat input message is set to in the CSS
     const scalefactor = 1.15;
-    let userChatMsg = document.querySelector(".chat-message.user");
-    let chatBoxMsg = document.querySelector(".chat-message.bot");
+    let userChatMsg = document.querySelectorAll(".chat-message.user");
+    let chatBoxMsg = document.querySelectorAll(".chat-message.bot");
     let userInputMsg = document.querySelector("#chat-input");
 
     // handle input box first
@@ -369,10 +370,14 @@ range.addEventListener("input", () => {
     }
 
     // handle chat messages next if they exist
-    if (userChatMsg && chatBoxMsg) {
-        userChatMsg.style.fontSize = scaleFunction(chatMessageSize, scalefactor, index) + "px";
-        chatBoxMsg.style.fontSize = scaleFunction(chatMessageSize, scalefactor, index) + "px";
-    }
+    scaledChatFontSize = scaleFunction(chatMessageSize, scalefactor, index);
+    userChatMsg.forEach(function(userResponse){
+        userResponse.style.fontSize = scaledChatFontSize + "px";
+    })
+
+    chatBoxMsg.forEach(function(chatResponse){
+        chatResponse.style.fontSize = scaledChatFontSize + "px";
+   })
 });
 
 
@@ -480,8 +485,8 @@ chatInput.addEventListener("keydown", function (e) {
         //console.log(historyObject);
         history.push(historyObject);
         localStorage.setItem('history', JSON.stringify(history));
-        createHistory(history[history.length - 1].keyword, history[history.length - 1].date); // call global function
-        loadHistory();
+        let historyLen = history.length - 1;
+        createHistory(history[historyLen].keyword, history[historyLen].date, historyLen); // call global function
 
         hasChattedOnce = !hasChattedOnce; // only run the if block for the first message
 
@@ -505,6 +510,7 @@ chatInput.addEventListener("keydown", function (e) {
     const msg = document.createElement("div");
     msg.classList.add("chat-message", sender);
     msg.innerHTML = `<p>${text}</p>`;
+    msg.style.fontSize = scaledChatFontSize + "px";
     chatContainer.appendChild(msg);
 
     // Keep the newest message visible
@@ -590,8 +596,8 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-// used for both loading the chat history when the browser opens and every time a new history is added
-function createHistory(keyword, date) {
+// creates history entry in sidebar and sets event listener to load the messages in that history entry
+function createHistory(keyword, date, index) {
     let histPlaceHolder = document.getElementById("hist-placeholder");
     if (histPlaceHolder) histPlaceHolder.style.display = "none";
     const newHist = document.createElement('span');
@@ -604,55 +610,43 @@ function createHistory(keyword, date) {
     newHist.appendChild(keywordP);
     newHist.appendChild(keywordD);
     histPlaceHolder.insertAdjacentElement("afterend", newHist); // add most recent to top
+    keywordP.addEventListener("click", function() {
+        loadHistory(index);
+    });
 }
 
 // loading chat history as soon as the browser loads
 document.addEventListener("DOMContentLoaded", function() {
     for (i=0; i<history.length; i++) {
-        createHistory(history[i].keyword, history[i].date);
+        createHistory(history[i].keyword, history[i].date, i);
     }
 });
 
-document.addEventListener("DOMContentLoaded", loadHistory);
-
-function loadHistory() {
+// loading by index avoids bug if keywords have the same name
+function loadHistory(index) {
     const chatContainer = document.getElementById("chat-messages");
-    document.querySelectorAll(".history-entry").forEach((entry) => {
-        const histKw = entry.querySelector(".hist-kw");
-        if (histKw) {
-            histKw.addEventListener("click", () => {
-                const text = histKw.textContent.trim();
-                // search if any of the keywords in history match the text in the sidebar
-                const match = history.find(h => h.keyword === text);
-
-                // clear chat before loading so that the wrong chats won't load on top of eachother
-                chatContainer.innerHTML = "";
-
-                if (match) {
-                    for (let i=0; i < match.messages.length; i++){
-                        addHistoryMessage("user", match.messages[i].question);
-                        addHistoryMessage("bot", match.messages[i].chatResponse);
-                    }
-                } else {
-                    console.log("No history found");
-                }
-            }); 
-        };
+    // clear chat before history entry gets loaded
+    chatContainer.innerHTML = '';
+    // load each message in the history entry
+    history[index].messages.forEach(function (message){
+        addHistoryMessage("user", message.question, chatContainer);
+        addHistoryMessage("bot", message.chatResponse, chatContainer);
     });
+};
 
-    // load the chat messages back
-    function addHistoryMessage(sender, text) {
-        const welcome = document.querySelector("#welcome-text");
+// load the chat messages back
+function addHistoryMessage(sender, text, container) {
+    const welcome = document.querySelector("#welcome-text");
 
-        if (welcome) welcome.style.display = "none";
-        const msg = document.createElement("div");
-        msg.classList.add("chat-message", sender);
-        msg.innerHTML = `<p>${text}</p>`;
-        chatContainer.appendChild(msg);
+    if (welcome) welcome.style.display = "none";
+    const msg = document.createElement("div");
+    msg.classList.add("chat-message", sender);
+    msg.innerHTML = `<p>${text}</p>`;
+    msg.style.fontSize = scaledChatFontSize + "px";
+    container.appendChild(msg);
 
-        // Keep the newest message visible
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-  }
+    // Keep the newest message visible
+    container.scrollTop = container.scrollHeight;
 };
 
 //DEMO
