@@ -617,7 +617,7 @@ function createHistory(keyword, date, index) {
 
 // loading chat history as soon as the browser loads
 document.addEventListener("DOMContentLoaded", function() {
-    for (i=0; i<history.length; i++) {
+    for (let i=0; i<history.length; i++) {
         createHistory(history[i].keyword, history[i].date, i);
     }
 });
