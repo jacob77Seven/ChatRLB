@@ -1,6 +1,7 @@
 
 let main = document.getElementsByTagName("main")[0];
 let body = document.getElementsByTagName("body")[0];
+const history = JSON.parse(localStorage.getItem('history')) || [];
 
 document.addEventListener("DOMContentLoaded", function() {
     let aside = document.getElementsByTagName("aside")[0];
@@ -23,7 +24,6 @@ document.addEventListener("DOMContentLoaded", function() {
             main.style.marginLeft = "260px"; // Adjust main content
         }
         isSidebarOpen = !isSidebarOpen; // Toggle state
-        console.log("sidebar open normal : " + isSidebarOpen);
     });
 
     /* can make function look nicer later */
@@ -42,7 +42,6 @@ document.addEventListener("DOMContentLoaded", function() {
             main.style.marginLeft = "260px"; // Adjust main content
         }
         isSidebarOpen = !isSidebarOpen;
-        console.log("media query sidebar open: " + isSidebarOpen);
     }
     let mediaQuery = window.matchMedia("(max-width: 700px"); // create MediaQueryList object
     changeMediaQuery(mediaQuery); // call listener function at runtime
@@ -120,7 +119,6 @@ appearanceBtn.addEventListener("click", handleAppearance);
 function handleAppearance() {
     if (settingsClicked) {
         appearanceClicked = !appearanceClicked;
-        console.log("appearanceClicked outside if statement: " + appearanceClicked);
 
         if (appearanceClicked) {
             appearanceBtn.style.backgroundColor = "var(--mainColor)";
@@ -154,7 +152,6 @@ function closeAppearance() {
     settingsBtn.style.backgroundColor = "var(--buttonColor)";
     settingsPopup.style.opacity = "0";
     settingsClicked = !settingsClicked;
-    console.log("in closed appearance");
     document.removeEventListener("keydown", handleClick);
 }
 
@@ -179,7 +176,7 @@ darkModeBox.addEventListener("change", () => {
         root.style.setProperty('--buttonColor', '#40414f');
         root.style.setProperty('--headingColor', 'rgb(255,255,255)');
         root.style.setProperty('--mainColor', 'var(--brand-blue)');
-        profileBox.style.border = 'none';
+        profileBox.style.border = '1px solid var(--borderColor)';
         logoImg.style.filter = 'brightness(1) invert(0)'; // default for image
         logoBox.style.backgroundColor = 'rgb(60, 60, 73)';
         logoBox.style.borderBottom = 'none';
@@ -192,7 +189,7 @@ darkModeBox.addEventListener("change", () => {
         root.style.setProperty('--ColorUser', 'white');
         root.style.setProperty('--borderUser', 'none');
  
-        root.style.setProperty('--backgroundColorBot', 'var(--brand-blue)');
+        root.style.setProperty('--backgroundColorBot', '#2D5D5D');
         root.style.setProperty('--ColorBot', 'white');
         root.style.setProperty('--borderBot', 'none');
     }
@@ -247,8 +244,8 @@ contrastModeBox.addEventListener("change", () => {
 
         // for chat messages
         root.style.setProperty('--backgroundColorUser', 'black');
-        root.style.setProperty('--ColorUser', 'var(--brand-red)');
-        root.style.setProperty('--borderUser', '1px solid var(--brand-red)');
+        root.style.setProperty('--ColorUser', '#F16F7C');
+        root.style.setProperty('--borderUser', '1px solid #F16F7C');
 
         root.style.setProperty('--backgroundColorBot', 'black');
         root.style.setProperty('--ColorBot', 'var(--brand-blue)');
@@ -276,7 +273,7 @@ sizeBtn.addEventListener('mouseout', () => {
 
 function handleFontClick(event) {
     range.focus();
-    console.log("handleFontClick : " + event.key);
+    //console.log("handleFontClick : " + event.key);
 
     if (event.key === "Enter") {
         handleTextSize();
@@ -288,7 +285,6 @@ sizeBtn.addEventListener("click", handleTextSize);
 function handleTextSize() {
     if (settingsClicked) {
         sizeClicked = !sizeClicked;
-        console.log("size click before if statement: " + sizeClicked);
 
         if (sizeClicked) {
             sizeBtn.style.backgroundColor = "var(--mainColor)";
@@ -313,7 +309,6 @@ closeSizeBtn.addEventListener("click", closeSize);
 
 function closeSize() {
     let settingsPopup = document.getElementsByClassName("settings-popup")[0];
-
     fontSizePopup.style.opacity = 0; // make popup close
     body.style.pointerEvents="all"; // now you can click on everything again
     fontSizePopup.style.pointerEvents = "none";
@@ -355,100 +350,178 @@ range.addEventListener("input", () => {
 
 
 document.addEventListener("DOMContentLoaded", function () {
-    const newChatButton = document.getElementById("new-chat-btn"); // Select button by ID
-    const chatContainer = document.getElementById("inner"); // Chat area
+  const newChatBtn   = document.getElementById("new-chat-btn");
+  const messagesEl   = document.getElementById("chat-messages");
+  const inputEl      = document.getElementById("chat-input");
+  const welcomeEl    = document.getElementById("welcome-text");
 
-    if (newChatButton) {
-        console.log(" New Chat button found!"); // Debugging
+  if (!newChatBtn) return;
 
-        newChatButton.addEventListener("click", function () {
-            console.log(" New Chat button clicked!"); // Debugging when clicked
+  newChatBtn.addEventListener("click", () => {
+    // (Optional) save current conversation here before clearing, if you want persistence
 
-            // Clear previous chat
-            chatContainer.innerHTML = "";
+    // Clear current messages only
+    messagesEl.innerHTML = "";
 
-            // Create new chat interface
-            const chatBox = document.createElement("div");
-            chatBox.classList.add("chat-box");
-
-            chatBox.innerHTML = `
-                <div class="new-chat-message">
-                    <p>Welcome! Start your conversation...</p>
-                </div>
-                <div class="searchBox">
-                    <form id="chat-form">
-                        <textarea id="chat-input" rows="1" placeholder="What does Jesus say about..."></textarea>
-                        <button type="submit"><i class="fa-solid fa-paper-plane"></i></button>
-                    </form>
-                </div>
-            `;
-            chatBox.style.width = "100%"; // this sets the width of the chatbox to the size of #inner block
-
-            chatContainer.appendChild(chatBox); // Add to main chat area
-            document.getElementById("chat-input").focus(); // Focus on input
-        });
-    } else {
-        console.log(" New Chat button NOT found!");
+    // Show the welcome text again if you want (or keep it hidden)
+    if (welcomeEl) {
+      welcomeEl.style.display = "block";
+      welcomeEl.textContent = ""; // reset typing text
+      // re-run the typing effect if desired:
+      typeWelcomeAgain(welcomeEl, "Welcome to ChatRLB!", 75);
     }
+
+    // Reset and focus input
+    inputEl.value = "";
+    inputEl.focus();
+
+    // Ensure the messages panel is scrolled to bottom (empty state)
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+
+    // Update global variable so that chat history still works when new chat button clicked
+    hasChattedOnce = false;
+  });
+
+  function typeWelcomeAgain(node, msg, speedMs) {
+    let i = 0;
+    function step() {
+      if (i < msg.length) {
+        node.textContent += msg.charAt(i++);
+        setTimeout(step, speedMs);
+      }
+    }
+    step();
+  }
 });
 
+let hasChattedOnce = false; // Global so that it can change when new chat button is pressed.
+
 document.addEventListener("DOMContentLoaded", function () {
-    const chatContainer = document.getElementById("chat-messages"); // Where messages go
-    const chatForm = document.getElementById("chat-form");           // The chat form
-    const chatInput = document.getElementById("chat-input");         // Text input
+  const chatContainer = document.getElementById("chat-messages");
+  const chatForm      = document.getElementById("chat-form");
+  const chatInput     = document.getElementById("chat-input");
+  // Allow Enter to submit the chat (and Shift+Enter to add a new line)
+chatInput.addEventListener("keydown", function (e) {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();       // stop newline
+    chatForm.requestSubmit(); // triggers the form's submit event
+  }
+});
 
-    // Submit event for the chat form
-    chatForm.addEventListener("submit", async function (e) {
-        e.preventDefault(); // Prevent page reload
 
-        const message = chatInput.value.trim(); // Get user message
-        if (!message) return;
+  if (!chatForm || chatForm.dataset.bound === "1") return;
+  chatForm.dataset.bound = "1"; // prevent duplicate listeners
 
-        appendMessage("user", message); // Show user message
-        chatInput.value = ""; // Clear input
+  chatForm.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    const message = chatInput.value.trim();
+    if (!message) return;
 
-        try {
-            const response = await fetch("/chatbot/", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRFToken": getCSRFToken() // CSRF token for Django
-                },
-                body: JSON.stringify({ message: message })
-            });
+    appendMessage("user", message);
+    chatInput.value = "";
 
-            const data = await response.json();
-            appendMessage("bot", data.reply || "No response");
-        } catch (err) {
-            appendMessage("bot", "⚠️ Error: Could not contact server.");
+    try {
+      const response = await fetch("/chatbot/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCSRFToken()
+        },
+        body: JSON.stringify({ message })
+      });
+      const data = await response.json();
+      appendMessage("bot", data.reply || "No response");
+
+      // create message object to store message
+      const messageSet = {
+        question: message,
+        chatResponse: data.reply
+      };
+      //console.log(messageSet);
+      //console.log("hasChattedOnce? " + hasChattedOnce);
+
+      if (hasChattedOnce === false) {
+        // first time chatting
+        const chatHistoryEntry = extractMainIdea(data.reply);
+        const chatHistoryDate = new Date().toLocaleString('en-US', { month: 'short', day: '2-digit'});
+        // create history object to store history, date, and messages
+        const historyObject = {
+            keyword: chatHistoryEntry,
+            date: chatHistoryDate,
+            messages: [messageSet]
+        };
+        //console.log(historyObject);
+        history.push(historyObject);
+        localStorage.setItem('history', JSON.stringify(history));
+        createHistory(history[history.length - 1].keyword, history[history.length - 1].date); // call global function
+        loadHistory();
+
+        hasChattedOnce = !hasChattedOnce; // only run the if block for the first message
+
+      } else {
+        // stored in same history object
+        history[history.length - 1].messages.push(messageSet);
+        localStorage.setItem('history', JSON.stringify(history));
+        //console.log(history);
+        //console.log(history.length);
+        
+      }
+    } catch (err) {
+      appendMessage("bot", "⚠️ Error: Could not contact server.");
+    }
+  });
+
+  function appendMessage(sender, text) {
+    const welcome = document.querySelector("#welcome-text");
+    if (welcome) welcome.style.display = "none";
+
+    const msg = document.createElement("div");
+    msg.classList.add("chat-message", sender);
+    msg.innerHTML = `<p>${text}</p>`;
+    chatContainer.appendChild(msg);
+
+    // Keep the newest message visible
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+  }
+
+  function getCSRFToken() {
+    let cookieValue = null;
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+      const trimmed = cookie.trim();
+      if (trimmed.startsWith("csrftoken=")) {
+        cookieValue = trimmed.substring("csrftoken=".length);
+        break;
+      }
+    }
+    return cookieValue;
+  }
+
+  // sometimes it can return unlikely words
+  // if word returned that is undesired, add it to the set of stopWords (for right now)
+  function extractMainIdea(text) {
+    const stopWords = new Set(["the", "a", "an", "is", "of", "and", "in", "to", "for", "on", "with", "as", "at", "about", "you", "this", "that", "he", "not", "jesus", "god"]);
+    const words = text.toLowerCase().match(/\b[a-zA-Z\'\’]+\b/g); // Tokenize and convert to lowercase
+    const wordCounts = {};
+
+    // Don't include the stopwords
+    for (const word of words) {
+        if (!stopWords.has(word)) {
+            wordCounts[word] = (wordCounts[word] || 0) + 1;
         }
-    });
+    }
+    //console.log(wordCounts);
 
-    // Append message to chat box
-    function appendMessage(sender, text) {
-        const welcome = document.querySelector("#welcome-text");
-        if (welcome) welcome.style.display = "none";
-    
-        const msg = document.createElement("div");
-        msg.classList.add("chat-message", sender); // user or bot
-        msg.innerHTML = `<p>${text}</p>`;
-        chatContainer.appendChild(msg);
-        chatContainer.scrollTop = chatContainer.scrollHeight; // Auto-scroll
+    // Sort by frequency (descending order)
+    const sortedKeywords = Object.entries(wordCounts)
+    .sort(([, countA], [, countB]) => countB - countA)
+    .map(([word]) => word);
+
+    //console.log(sortedKeywords);
+    const topWord = sortedKeywords[0]; // Get most frequent word
+    return topWord.charAt(0).toUpperCase() + topWord.slice(1); // Return most frequent word capitalized
     }
 
-    // Read CSRF token from cookies (for Django security)
-    function getCSRFToken() {
-        let cookieValue = null;
-        const cookies = document.cookie.split(';');
-        for (let cookie of cookies) {
-            const trimmed = cookie.trim();
-            if (trimmed.startsWith("csrftoken=")) {
-                cookieValue = trimmed.substring("csrftoken=".length);
-                break;
-            }
-        }
-        return cookieValue;
-    }
 });
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -489,3 +562,68 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 });
+
+// used for both loading the chat history when the browser opens and every time a new history is added
+function createHistory(keyword, date) {
+    let histPlaceHolder = document.getElementById("hist-placeholder");
+    if (histPlaceHolder) histPlaceHolder.style.display = "none";
+    const newHist = document.createElement('span');
+    const keywordP = document.createElement('p');
+    keywordP.textContent = `${keyword}`;
+    keywordP.classList.add('hist-kw');
+    const keywordD = document.createElement('p');
+    keywordD.textContent = `${date}`
+    newHist.classList.add('history-entry');
+    newHist.appendChild(keywordP);
+    newHist.appendChild(keywordD);
+    histPlaceHolder.insertAdjacentElement("afterend", newHist); // add most recent to top
+}
+
+// loading chat history as soon as the browser loads
+document.addEventListener("DOMContentLoaded", function() {
+    for (i=0; i<history.length; i++) {
+        createHistory(history[i].keyword, history[i].date);
+    }
+});
+
+document.addEventListener("DOMContentLoaded", loadHistory);
+
+function loadHistory() {
+    const chatContainer = document.getElementById("chat-messages");
+    document.querySelectorAll(".history-entry").forEach((entry) => {
+        const histKw = entry.querySelector(".hist-kw");
+        if (histKw) {
+            histKw.addEventListener("click", () => {
+                const text = histKw.textContent.trim();
+                // search if any of the keywords in history match the text in the sidebar
+                const match = history.find(h => h.keyword === text);
+
+                // clear chat before loading so that the wrong chats won't load on top of eachother
+                chatContainer.innerHTML = "";
+
+                if (match) {
+                    for (let i=0; i < match.messages.length; i++){
+                        addHistoryMessage("user", match.messages[i].question);
+                        addHistoryMessage("bot", match.messages[i].chatResponse);
+                    }
+                } else {
+                    console.log("No history found");
+                }
+            }); 
+        };
+    });
+
+    // load the chat messages back
+    function addHistoryMessage(sender, text) {
+        const welcome = document.querySelector("#welcome-text");
+
+        if (welcome) welcome.style.display = "none";
+        const msg = document.createElement("div");
+        msg.classList.add("chat-message", sender);
+        msg.innerHTML = `<p>${text}</p>`;
+        chatContainer.appendChild(msg);
+
+        // Keep the newest message visible
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+  }
+};
