@@ -428,6 +428,63 @@ document.addEventListener("DOMContentLoaded", function () {
 
 let hasChattedOnce = false; // Global so that it can change when new chat button is pressed.
 
+// ---- SAFE CHAT WIRING ----
+document.addEventListener("DOMContentLoaded", function () {
+  const chatContainer = document.getElementById("chat-messages");
+  const chatForm      = document.getElementById("chat-form");
+  const chatInput     = document.getElementById("chat-input");
+
+  if (!chatForm || !chatInput || !chatContainer) {
+    console.warn("[chat] missing form/input/container");
+    return;
+  }
+});
+
+  // Allow Enter to submit (Shift+Enter = newline)
+  chatInput.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      chatForm.requestSubmit();
+    }
+  });
+
+
+// Append message helper (fires TTS event for bot)
+function appendMessage(sender, text, containerEl) {
+  const container = containerEl || document.getElementById("chat-messages");
+  if (!container) return;
+
+  const welcome = document.querySelector("#welcome-text");
+  if (welcome) welcome.style.display = "none";
+
+  const msg = document.createElement("div");
+  msg.classList.add("chat-message", sender);
+  msg.innerHTML = `<p>${text}</p>`;
+  msg.style.fontSize = (typeof scaledChatFontSize !== "undefined" ? scaledChatFontSize : 16) + "px";
+  container.appendChild(msg);
+
+  container.scrollTop = container.scrollHeight;
+
+  if (sender === "bot") {
+    const event = new CustomEvent("assistant-appended", { detail: { text } });
+    document.dispatchEvent(event);
+  }
+}
+
+// CSRF helper
+function getCSRFToken() {
+  let cookieValue = null;
+  const cookies = document.cookie.split(';');
+  for (let cookie of cookies) {
+    const trimmed = cookie.trim();
+    if (trimmed.startsWith("csrftoken=")) {
+      cookieValue = trimmed.substring("csrftoken=".length);
+      break;
+    }
+  }
+  return cookieValue;
+}
+/*
 document.addEventListener("DOMContentLoaded", function () {
   const chatContainer = document.getElementById("chat-messages");
   const chatForm      = document.getElementById("chat-form");
@@ -516,6 +573,7 @@ chatInput.addEventListener("keydown", function (e) {
     // Keep the newest message visible
     chatContainer.scrollTop = chatContainer.scrollHeight;
   }
+  */
 
   function getCSRFToken() {
     let cookieValue = null;
