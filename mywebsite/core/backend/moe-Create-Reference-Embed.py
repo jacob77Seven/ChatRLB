@@ -92,3 +92,9 @@ print(f"Embeddings have been created and saved locally in the {persist_directory
 # print(retrieved_docs[0].metadata)
 
 ##################
+
+# Claire's review:
+# Code flow is clear and is easy follow
+# Maybe remove unused imports (csv, TEST_PATH) for tidiness.
+# Add a few more comments for readability
+# Overall: Well done! I'm team "if your code works, it work!", so my suggestions are probably more about style than function. :)
