@@ -724,3 +724,186 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 });
 
+// ================== STT (Web Speech API, no models) ==================
+(function () {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const form  = document.getElementById("chat-form");
+    const input = document.getElementById("chat-input");
+    if (!form || !input) return;
+
+    // Reuse an existing mic button if present; otherwise create one.
+    let micBtn =
+      document.getElementById("stt-mic-btn") ||
+      document.getElementById("stt-btn") || // if you already had this id
+      null;
+
+    if (!micBtn) {
+      const submitBtn = form.querySelector('button[type="submit"]') || form.lastElementChild;
+      micBtn = document.createElement("button");
+      micBtn.type = "button";
+      micBtn.id = "stt-mic-btn";
+      micBtn.className = "icon-btn";
+      micBtn.title = "Speak";
+      micBtn.style.marginLeft = "8px";
+      micBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
+      form.insertBefore(micBtn, submitBtn);
+    }
+
+    if (!SR) {
+      micBtn.disabled = true;
+      micBtn.title = "Speech recognition not supported (try Chrome/Edge/Safari)";
+      micBtn.innerHTML = '<i class="fa-solid fa-ban"></i>';
+      console.warn("[STT] Web Speech API not supported.");
+      return;
+    }
+
+    const rec = new SR();
+    rec.lang = "en-US";
+    rec.continuous = false;     // one utterance per click
+    rec.interimResults = true;  // show live words in placeholder
+
+    let listening = false;
+    const originalPH = input.placeholder;
+
+    function setMicUI(active) {
+      listening = active;
+      micBtn.classList.toggle("listening", active);
+      micBtn.innerHTML = active
+        ? '<i class="fa-solid fa-microphone-lines"></i>'
+        : '<i class="fa-solid fa-microphone"></i>';
+      micBtn.title = active ? "Listening…" : "Speak";
+    }
+
+    rec.onstart = () => {
+      setMicUI(true);
+      input.selectionStart = input.selectionEnd = input.value.length;
+    };
+
+    rec.onresult = (e) => {
+      let interim = "", finalTxt = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const t = e.results[i][0].transcript;
+        if (e.results[i].isFinal) finalTxt += t; else interim += t;
+      }
+      input.placeholder = interim || originalPH;
+
+      if (finalTxt) {
+        input.value = (input.value ? input.value.trim() + " " : "") + finalTxt.trim();
+      }
+    };
+
+    rec.onerror = (e) => {
+      console.warn("[STT] error:", e.error || e);
+      input.placeholder = originalPH;
+      setMicUI(false);
+    };
+
+    rec.onend = () => {
+      input.placeholder = originalPH;
+      setMicUI(false);
+      if (input.value.trim()) form.requestSubmit();
+    };
+
+    micBtn.addEventListener("click", () => {
+      if (!listening) {
+        try { rec.start(); } catch (err) { console.warn("[STT] start error:", err); }
+      } else {
+        rec.stop();
+      }
+    });
+  });
+})();
+
+// ================== STT (Web Speech API, no models) ==================
+(function () {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const form  = document.getElementById("chat-form");
+    const input = document.getElementById("chat-input");
+    if (!form || !input) return;
+
+    // Reuse an existing mic button if present; otherwise create one.
+    let micBtn =
+      document.getElementById("stt-mic-btn") ||
+      document.getElementById("stt-btn") || // if you already had this id
+      null;
+
+    if (!micBtn) {
+      const submitBtn = form.querySelector('button[type="submit"]') || form.lastElementChild;
+      micBtn = document.createElement("button");
+      micBtn.type = "button";
+      micBtn.id = "stt-mic-btn";
+      micBtn.className = "icon-btn";
+      micBtn.title = "Speak";
+      micBtn.style.marginLeft = "8px";
+      micBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
+      form.insertBefore(micBtn, submitBtn);
+    }
+
+    if (!SR) {
+      micBtn.disabled = true;
+      micBtn.title = "Speech recognition not supported (try Chrome/Edge/Safari)";
+      micBtn.innerHTML = '<i class="fa-solid fa-ban"></i>';
+      console.warn("[STT] Web Speech API not supported.");
+      return;
+    }
+
+    const rec = new SR();
+    rec.lang = "en-US";
+    rec.continuous = false;     // one utterance per click
+    rec.interimResults = true;  // show live words in placeholder
+
+    let listening = false;
+    const originalPH = input.placeholder;
+
+    function setMicUI(active) {
+      listening = active;
+      micBtn.classList.toggle("listening", active);
+      micBtn.innerHTML = active
+        ? '<i class="fa-solid fa-microphone-lines"></i>'
+        : '<i class="fa-solid fa-microphone"></i>';
+      micBtn.title = active ? "Listening…" : "Speak";
+    }
+
+    rec.onstart = () => {
+      setMicUI(true);
+      input.selectionStart = input.selectionEnd = input.value.length;
+    };
+
+    rec.onresult = (e) => {
+      let interim = "", finalTxt = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const t = e.results[i][0].transcript;
+        if (e.results[i].isFinal) finalTxt += t; else interim += t;
+      }
+      input.placeholder = interim || originalPH;
+
+      if (finalTxt) {
+        input.value = (input.value ? input.value.trim() + " " : "") + finalTxt.trim();
+      }
+    };
+
+    rec.onerror = (e) => {
+      console.warn("[STT] error:", e.error || e);
+      input.placeholder = originalPH;
+      setMicUI(false);
+    };
+
+    rec.onend = () => {
+      input.placeholder = originalPH;
+      setMicUI(false);
+      if (input.value.trim()) form.requestSubmit();
+    };
+
+    micBtn.addEventListener("click", () => {
+      if (!listening) {
+        try { rec.start(); } catch (err) { console.warn("[STT] start error:", err); }
+      } else {
+        rec.stop();
+      }
+    });
+  });
+})();
