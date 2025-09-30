@@ -677,7 +677,7 @@ chatInput.addEventListener("keydown", function (e) {
     }
 
 };
-
+*/
 document.addEventListener("DOMContentLoaded", function () {
     const welcomeText = document.getElementById("welcome-text");
     const message = "Welcome to ChatRLB!";
@@ -692,7 +692,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     typeNextChar();
-}); */
+});
 
 //about RLB button
 document.addEventListener('DOMContentLoaded', function () {
@@ -902,6 +902,7 @@ console.log("[tts] loaded");
 })();
 
 // ================== STT (Web Speech API, no models) ==================
+
 (function () {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 
@@ -992,49 +993,3 @@ console.log("[tts] loaded");
     });
   });
 })();
-
-
-// ============ STT: Mic button to transcribe, then submit ============
-/*
-(function () {
-  function ensureMicBtn() {
-    let btn = document.getElementById("stt-btn");
-    if (!btn) {
-      const toolbar = document.getElementById("chat-form") || document.body;
-      btn = document.createElement("button");
-      btn.type = "button";
-      btn.id = "stt-btn";
-      btn.className = "icon-btn";
-      btn.style.marginLeft = "8px";
-      btn.innerHTML = '<i class="fa fa-microphone"></i>';
-      toolbar.appendChild(btn);
-    }
-
-    const form  = document.getElementById("chat-form");
-    const input = document.getElementById("chat-input");
-
-    btn.addEventListener("click", async () => {
-      if (!form || !input) return;
-      btn.disabled = true;
-      btn.title = "Listening...";
-      try {
-        const resp = await fetch("http://localhost:8001/api/stt/once", { method: "POST" });
-        const { text } = await resp.json();
-        if (text && text.trim()) {
-          input.value = text.trim();
-          // use your existing submit flow
-          form.requestSubmit();
-        } else {
-          console.log("[stt] empty transcription");
-        }
-      } catch (e) {
-        console.warn("[stt] error", e);
-      } finally {
-        btn.disabled = false;
-        btn.title = "Microphone";
-      }
-    });
-  }
-
-  document.addEventListener("DOMContentLoaded", ensureMicBtn);
-})*/
