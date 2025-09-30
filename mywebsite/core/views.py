@@ -6,6 +6,8 @@ from ollama import chat
 from ollama import ChatResponse
 from .backend.chatbot import *
 from django.conf import settings
+import os, json, pyaudio
+from vosk import Model, KaldiRecognizer
 
 # Create your views here.
 from django.shortcuts import render
@@ -33,3 +35,32 @@ def chatbot_reply(request):
         return JsonResponse({"reply": bot_reply})
 
     return JsonResponse({"error": "Invalid request"}, status=400)
+
+@csrf_exempt
+def stt_once(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "POST only"}, status=405)
+
+    rec = KaldiRecognizer(vosk_model, 16000)
+    pa = pyaudio.PyAudio()
+    stream = pa.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True, frames_per_buffer=8192)
+    stream.start_stream()
+
+    # ~5 seconds capture (20 chunks of 4096 @16k)
+    text = ""
+    try:
+        for _ in range(20):
+            data = stream.read(4096, exception_on_overflow=False)
+            if rec.AcceptWaveform(data):
+                result = json.loads(rec.Result())
+                t = result.get("text", "").strip()
+                if t:
+                    text = t
+                    break
+        if not text:
+            final = json.loads(rec.FinalResult())
+            text = final.get("text", "").strip()
+    finally:
+        stream.stop_stream(); stream.close(); pa.terminate()
+
+    return JsonResponse({"text": text})

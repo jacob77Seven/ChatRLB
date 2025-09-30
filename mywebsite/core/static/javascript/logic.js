@@ -70,7 +70,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         isSidebarOpen = !isSidebarOpen;
     }
-    let mediaQuery = window.matchMedia("(max-width: 700px"); // create MediaQueryList object
+    let mediaQuery = window.matchMedia("(max-width: 700px)"); // create MediaQueryList object
     changeMediaQuery(mediaQuery); // call listener function at runtime
     // attach listener function on state changes
     mediaQuery.addEventListener("change", function() { 
@@ -428,6 +428,121 @@ document.addEventListener("DOMContentLoaded", function () {
 
 let hasChattedOnce = false; // Global so that it can change when new chat button is pressed.
 
+// ---- SAFE CHAT WIRING ----
+document.addEventListener("DOMContentLoaded", function () {
+  const chatContainer = document.getElementById("chat-messages");
+  const chatForm      = document.getElementById("chat-form");
+  const chatInput     = document.getElementById("chat-input");
+
+  if (!chatForm || !chatInput || !chatContainer) {
+    console.warn("[chat] missing form/input/container");
+    return;
+  }
+
+  // Allow Enter to submit (Shift+Enter = newline)
+  chatInput.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      chatForm.requestSubmit();
+    }
+  });
+
+  // Prevent double-binding
+  if (chatForm.dataset.bound === "1") return;
+  chatForm.dataset.bound = "1";
+
+  chatForm.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    const message = chatInput.value.trim();
+    if (!message) return;
+
+    appendMessage("user", message, chatContainer);
+    chatInput.value = "";
+
+    try {
+      const response = await fetch("/chatbot/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCSRFToken()
+        },
+        body: JSON.stringify({ message })
+      });
+      const data = await response.json();
+      const botText = data.reply || "No response";
+      appendMessage("bot", botText, chatContainer);
+
+      // --- history handling ---
+      const messageSet = { question: message, chatResponse: botText };
+      if (hasChattedOnce === false) {
+        const chatHistoryEntry = extractMainIdea(botText);
+        const chatHistoryDate  = new Date().toLocaleString('en-US', { month: 'short', day: '2-digit' });
+        const historyObject = { keyword: chatHistoryEntry, date: chatHistoryDate, messages: [messageSet] };
+        history.push(historyObject);
+        localStorage.setItem('history', JSON.stringify(history));
+        const idx = history.length - 1;
+        createHistory(history[idx].keyword, history[idx].date, idx);
+        hasChattedOnce = true;
+      } else {
+        history[history.length - 1].messages.push(messageSet);
+        localStorage.setItem('history', JSON.stringify(history));
+      }
+    } catch (err) {
+      appendMessage("bot", "⚠️ Error: Could not contact server.", chatContainer);
+      console.warn("[chat] fetch error:", err);
+    }
+  });
+});
+
+// Append message helper (fires TTS event for bot)
+function appendMessage(sender, text, containerEl) {
+  const container = containerEl || document.getElementById("chat-messages");
+  if (!container) return;
+
+  const welcome = document.querySelector("#welcome-text");
+  if (welcome) welcome.style.display = "none";
+
+  const msg = document.createElement("div");
+  msg.classList.add("chat-message", sender);
+  msg.innerHTML = `<p>${text}</p>`;
+  msg.style.fontSize = (typeof scaledChatFontSize !== "undefined" ? scaledChatFontSize : 16) + "px";
+  container.appendChild(msg);
+
+  container.scrollTop = container.scrollHeight;
+
+  if (sender === "bot") {
+    const event = new CustomEvent("assistant-appended", { detail: { text } });
+    document.dispatchEvent(event);
+  }
+}
+
+// CSRF helper
+function getCSRFToken() {
+  let cookieValue = null;
+  const cookies = document.cookie.split(';');
+  for (let cookie of cookies) {
+    const trimmed = cookie.trim();
+    if (trimmed.startsWith("csrftoken=")) {
+      cookieValue = trimmed.substring("csrftoken=".length);
+      break;
+    }
+  }
+  return cookieValue;
+}
+
+// Keyword extraction for history
+function extractMainIdea(text) {
+  const stopWords = new Set(["the","a","an","is","of","and","in","to","for","on","with","as","at","about","you","this","that","he","not","jesus","god"]);
+  const words = (text.toLowerCase().match(/\b[a-zA-Z\'\’]+\b/g) || []).filter(w => !stopWords.has(w));
+  const counts = {};
+  for (const w of words) counts[w] = (counts[w] || 0) + 1;
+  const top = Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
+  if (!top) return "Conversation";
+  const word = top[0];
+  return word.charAt(0).toUpperCase() + word.slice(1);
+}
+
+/*
 document.addEventListener("DOMContentLoaded", function () {
   const chatContainer = document.getElementById("chat-messages");
   const chatForm      = document.getElementById("chat-form");
@@ -438,7 +553,7 @@ chatInput.addEventListener("keydown", function (e) {
     e.preventDefault();       // stop newline
     chatForm.requestSubmit(); // triggers the form's submit event
   }
-});
+})});
 
 
   if (!chatForm || chatForm.dataset.bound === "1") return;
@@ -515,8 +630,13 @@ chatInput.addEventListener("keydown", function (e) {
 
     // Keep the newest message visible
     chatContainer.scrollTop = chatContainer.scrollHeight;
+
+    // NEW: fire event only when assistant/bot is appended (so TTS reads assistant only)
+    if (sender === "bot") {
+      const event = new CustomEvent("assistant-appended", { detail: { text } });
+      document.dispatchEvent(event);
+
   }
-  */
 
   function getCSRFToken() {
     let cookieValue = null;
@@ -556,7 +676,7 @@ chatInput.addEventListener("keydown", function (e) {
     return topWord.charAt(0).toUpperCase() + topWord.slice(1); // Return most frequent word capitalized
     }
 
-});
+};
 
 document.addEventListener("DOMContentLoaded", function () {
     const welcomeText = document.getElementById("welcome-text");
@@ -572,7 +692,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     typeNextChar();
-});
+}); */
 
 //about RLB button
 document.addEventListener('DOMContentLoaded', function () {
@@ -725,6 +845,62 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 });
 
+// ============ TTS: Assistant-only reader ============
+console.log("[tts] loaded");
+(function () {
+  const synth = window.speechSynthesis || null;
+  if (!synth) { console.warn("[tts] no window.speechSynthesis available"); return; }
+
+  let ttsOn = false;
+
+  function updateTtsBtn() {
+    const btn = document.getElementById("tts-btn");
+    if (!btn) return;
+    btn.title = ttsOn ? "Reading: ON" : "Reading: OFF";
+    btn.classList.toggle("is-on", ttsOn);
+  }
+
+  function ensureTtsBtn() {
+    let btn = document.getElementById("tts-btn");
+    if (!btn) {
+      // attach to your chat form area
+      const toolbar = document.getElementById("chat-form") || document.body;
+      btn = document.createElement("button");
+      btn.type = "button";
+      btn.id = "tts-btn";
+      btn.className = "icon-btn";
+      btn.style.marginLeft = "8px";
+      btn.innerHTML = '<i class="fa fa-volume-up"></i>';
+      toolbar.appendChild(btn);
+    }
+    btn.addEventListener("click", () => {
+      ttsOn = !ttsOn;
+      try { if (!ttsOn && speechSynthesis.speaking) speechSynthesis.cancel(); } catch(e){}
+      updateTtsBtn();
+    });
+    updateTtsBtn();
+  }
+
+  function speak(text) {
+    if (!ttsOn || !text) return;
+    try {
+      if (synth.speaking) synth.cancel();
+      const uttr = new SpeechSynthesisUtterance(text);
+      synth.speak(uttr);
+    } catch (e) {
+      console.warn("[tts] speak error", e);
+    }
+  }
+
+  // Listen for a custom event fired when a bot message is appended (see patch in appendMessage below)
+  document.addEventListener("assistant-appended", (ev) => {
+    const text = (ev.detail && ev.detail.text) ? String(ev.detail.text).trim() : "";
+    if (text) speak(text);
+  });
+
+  document.addEventListener("DOMContentLoaded", ensureTtsBtn);
+})();
+
 // ================== STT (Web Speech API, no models) ==================
 (function () {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -816,3 +992,49 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 })();
+
+
+// ============ STT: Mic button to transcribe, then submit ============
+/*
+(function () {
+  function ensureMicBtn() {
+    let btn = document.getElementById("stt-btn");
+    if (!btn) {
+      const toolbar = document.getElementById("chat-form") || document.body;
+      btn = document.createElement("button");
+      btn.type = "button";
+      btn.id = "stt-btn";
+      btn.className = "icon-btn";
+      btn.style.marginLeft = "8px";
+      btn.innerHTML = '<i class="fa fa-microphone"></i>';
+      toolbar.appendChild(btn);
+    }
+
+    const form  = document.getElementById("chat-form");
+    const input = document.getElementById("chat-input");
+
+    btn.addEventListener("click", async () => {
+      if (!form || !input) return;
+      btn.disabled = true;
+      btn.title = "Listening...";
+      try {
+        const resp = await fetch("http://localhost:8001/api/stt/once", { method: "POST" });
+        const { text } = await resp.json();
+        if (text && text.trim()) {
+          input.value = text.trim();
+          // use your existing submit flow
+          form.requestSubmit();
+        } else {
+          console.log("[stt] empty transcription");
+        }
+      } catch (e) {
+        console.warn("[stt] error", e);
+      } finally {
+        btn.disabled = false;
+        btn.title = "Microphone";
+      }
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", ensureMicBtn);
+})*/
