@@ -772,3 +772,13 @@ input[type="range"]#size-input {
 
 /* Give the chat area some right margin so it doesn't sit under notes panel */
 main #inner { margin-right: 30%; }  /* quick demo spacing */
+
+/* markdown for chat messages */
+.chat-message.bot ul {
+    margin-left: 2rem; /* puts bullet points in chat message bubble */
+    margin-top: -1rem; /* puts ul closer to paragraph above it */
+}
+
+.chat-messages.bot ul li ul {
+    margin-bottom: -2rem; /* removes space underneath ul inside li element if it exists */
+}

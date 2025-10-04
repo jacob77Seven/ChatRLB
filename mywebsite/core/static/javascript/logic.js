@@ -26,8 +26,8 @@ const DEMO_VERSES = [
 ];
 
 
-let main = document.getElementsByTagName("main")[0];
-let body = document.getElementsByTagName("body")[0];
+const main = document.getElementsByTagName("main")[0];
+const body = document.getElementsByTagName("body")[0];
 const history = JSON.parse(localStorage.getItem('history')) || [];
 
 document.addEventListener("DOMContentLoaded", function() {
@@ -79,27 +79,16 @@ document.addEventListener("DOMContentLoaded", function() {
 
 });
 
-// set main height here
-//let logo = document.getElementsByClassName("logo-container")[0];
-//const logoHeight = logo.offsetHeight;
-//let mainHeight = main.offsetHeight;
-//let newMainHeight = mainHeight - logoHeight;
-//main.style.setProperty('--box-height', newMainHeight + 'px');
-
 // settings button
 let settingsClicked = false; // track settings popup state
-let settingsBtn = document.getElementById('settings-btn');
+const settingsBtn = document.getElementById('settings-btn');
 
 settingsBtn.addEventListener('mouseover', () => {
     settingsBtn.style.backgroundColor = "var(--mainColor)";
-    //console.log("settings mouseover")
 });
 
 settingsBtn.addEventListener('mouseout', () => {
-    if (!settingsClicked) {
-        settingsBtn.style.backgroundColor = "var(--buttonColor)";
-        //console.log("settings mouseout")
-    }
+    if (!settingsClicked) settingsBtn.style.backgroundColor = "var(--buttonColor)";
 });
 
 settingsBtn.addEventListener('click', function() {
@@ -118,25 +107,18 @@ settingsBtn.addEventListener('click', function() {
 
 // appearance button under settings
 let appearanceClicked = false;
-let appearanceBtn = document.getElementById('chat-appearance');
-let appearancePopup = document.getElementById("appearance-popup");
+const appearanceBtn = document.getElementById('chat-appearance');
+const appearancePopup = document.getElementById("appearance-popup");
 appearanceBtn.addEventListener('mouseover', () => {
-    if (settingsClicked) {
-        appearanceBtn.style.backgroundColor = "var(--mainColor)";
-    }
-})
+    if (settingsClicked) appearanceBtn.style.backgroundColor = "var(--mainColor)";
+});
 
 appearanceBtn.addEventListener('mouseout', () => {
-    if (settingsClicked) {
-        if (!appearanceClicked) {
-            appearanceBtn.style.backgroundColor = "var(--buttonColor)";
-        }
-    }
-})
+    if (settingsClicked && !appearanceClicked) appearanceBtn.style.backgroundColor = "var(--buttonColor)";
+});
 
 function handleClick(event) {
     lightModeBox.focus();
-    //console.log("handleClick: " + event.key);
     if (event.key === "Enter") {
         handleAppearance();
     }
@@ -165,11 +147,11 @@ function handleAppearance() {
     }
 }
 
-let closeAppearanceBtn = document.getElementById("close-appearance");
+const closeAppearanceBtn = document.getElementById("close-appearance");
 closeAppearanceBtn.addEventListener('click', closeAppearance);
 
 function closeAppearance() {
-    let settingsPopup = document.getElementsByClassName("settings-popup")[0];
+    const settingsPopup = document.getElementsByClassName("settings-popup")[0];
 
     appearancePopup.style.opacity = 0; // make popup close
     body.style.pointerEvents="all"; // now you can click on everything again
@@ -183,16 +165,16 @@ function closeAppearance() {
 }
 
 // dark mode
-let darkModeBox = document.getElementById("dark-mode");
-let lightModeBox = document.getElementById("light-mode");
-let contrastModeBox = document.getElementById("high-contrast-mode");
-let root = document.querySelector(':root');
-let aside2 = document.getElementsByTagName("aside")[0];
-let logoImg = document.getElementsByTagName("img")[0];
-let profileBox = document.getElementsByClassName("profile-icon")[0];
-let logoBox = document.getElementsByClassName("logo-container")[0];
-let formBox = document.getElementById("chat-form");
-let formInput = document.getElementById("chat-input");
+const darkModeBox = document.getElementById("dark-mode");
+const lightModeBox = document.getElementById("light-mode");
+const contrastModeBox = document.getElementById("high-contrast-mode");
+const root = document.querySelector(':root');
+const aside2 = document.getElementsByTagName("aside")[0];
+const logoImg = document.getElementsByTagName("img")[0];
+const profileBox = document.getElementsByClassName("profile-icon")[0];
+const logoBox = document.getElementsByClassName("logo-container")[0];
+const formBox = document.getElementById("chat-form");
+const formInput = document.getElementById("chat-input");
 
 darkModeBox.addEventListener("change", () => {
     if (darkModeBox.checked) {
@@ -282,26 +264,18 @@ contrastModeBox.addEventListener("change", () => {
 
 // font size button under settings
 let sizeClicked = false;
-let sizeBtn = document.getElementById('font-size');
-let fontSizePopup = document.getElementById('textsize-popup')
+const sizeBtn = document.getElementById('font-size');
+const fontSizePopup = document.getElementById('textsize-popup')
 sizeBtn.addEventListener('mouseover', () => {
-    if (settingsClicked) {
-        sizeBtn.style.backgroundColor = "var(--mainColor)";
-    }
+    if (settingsClicked) sizeBtn.style.backgroundColor = "var(--mainColor)";
 })
 
 sizeBtn.addEventListener('mouseout', () => {
-    if (settingsClicked) {
-        if (!sizeClicked) {
-            sizeBtn.style.backgroundColor = "var(--buttonColor)";
-        }
-    }
+    if (settingsClicked && !sizeClicked) sizeBtn.style.backgroundColor = "var(--buttonColor)";
 })
 
 function handleFontClick(event) {
     range.focus();
-    //console.log("handleFontClick : " + event.key);
-
     if (event.key === "Enter") {
         handleTextSize();
     }
@@ -323,19 +297,17 @@ function handleTextSize() {
         } else {
             sizeBtn.style.backgroundColor = "var(--buttonColor)";
             sizeClicked = !sizeClicked; // fixes the sizeClicked variable to show correctly
-            //document.removeEventListener("keydown", handleFontClick);
-            // this is in closeSize so that the event listener will close even if you click on the x button
             range.blur();
             closeSize();
         }
     }
 }
 
-let closeSizeBtn = document.getElementById("close-textsize");
+const closeSizeBtn = document.getElementById("close-textsize");
 closeSizeBtn.addEventListener("click", closeSize);
 
 function closeSize() {
-    let settingsPopup = document.getElementsByClassName("settings-popup")[0];
+    const settingsPopup = document.getElementsByClassName("settings-popup")[0];
     fontSizePopup.style.opacity = 0; // make popup close
     body.style.pointerEvents="all"; // now you can click on everything again
     fontSizePopup.style.pointerEvents = "none";
@@ -360,8 +332,8 @@ range.addEventListener("input", () => {
     const chatMessageSize = 15; // what user and bot chat messages are set to in the CSS
     const inputMessageSize = 16; // what the chat input message is set to in the CSS
     const scalefactor = 1.15;
-    let userChatMsg = document.querySelectorAll(".chat-message.user");
-    let chatBoxMsg = document.querySelectorAll(".chat-message.bot");
+    let userChatMsgs = document.querySelectorAll(".chat-message.user");
+    let chatBoxMsgs = document.querySelectorAll(".chat-message.bot");
     let userInputMsg = document.querySelector("#chat-input");
 
     // handle input box first
@@ -371,11 +343,11 @@ range.addEventListener("input", () => {
 
     // handle chat messages next if they exist
     scaledChatFontSize = scaleFunction(chatMessageSize, scalefactor, index);
-    userChatMsg.forEach(function(userResponse){
+    userChatMsgs.forEach(function(userResponse){
         userResponse.style.fontSize = scaledChatFontSize + "px";
     })
 
-    chatBoxMsg.forEach(function(chatResponse){
+    chatBoxMsgs.forEach(function(chatResponse){
         chatResponse.style.fontSize = scaledChatFontSize + "px";
    })
 });
@@ -533,7 +505,10 @@ function getCSRFToken() {
 // Keyword extraction for history
 function extractMainIdea(text) {
   const stopWords = new Set(["the","a","an","is","of","and","in","to","for","on","with","as","at","about","you","this","that","he","not","jesus","god"]);
-  const words = (text.toLowerCase().match(/\b[a-zA-Z\'\’]+\b/g) || []).filter(w => !stopWords.has(w));
+  // parse text to get rid of html markdown first
+  const parser = new DOMParser()
+  const words = (parser.parseFromString(text, 'text/html').body.textContent.toLowerCase().match(/\b[a-zA-Z\'\’]+\b/g) || [])
+  .filter(w => !stopWords.has(w));
   const counts = {};
   for (const w of words) counts[w] = (counts[w] || 0) + 1;
   const top = Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
