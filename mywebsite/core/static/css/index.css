@@ -748,7 +748,7 @@ input[type="range"]#size-input {
     border-radius: 5px;
 }
 
-/* Study Mode chips bar */
+/* Study Mode chips bar *//*
 .study-bar {
   display: flex;
   flex-wrap: wrap;
@@ -768,17 +768,162 @@ input[type="range"]#size-input {
 }
 .chip:hover { background: var(--mainColor); color: var(--headingColor); }
 
+*/
 
 
-/* Give the chat area some right margin so it doesn't sit under notes panel */
-main #inner { margin-right: 30%; }  /* quick demo spacing */
+/* Give the chat area some right margin so it doesn't sit under notes panel *//*
+main #inner { margin-right: 30%; }  
 
-/* markdown for chat messages */
+
 .chat-message.bot ul {
-    margin-left: 2rem; /* puts bullet points in chat message bubble */
-    margin-top: -1rem; /* puts ul closer to paragraph above it */
+    margin-left: 2rem; 
+    margin-top: -1rem; 
 }
 
 .chat-messages.bot ul li ul {
-    margin-bottom: -2rem; /* removes space underneath ul inside li element if it exists */
+    margin-bottom: -2rem; }
+*/
+
+/* --- Study Mode chips --- */
+.study-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0 8px;
+}
+.chip {
+  background: var(--buttonColor);
+  border: 1px solid var(--borderColor);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 13px;
+  color: var(--headingColor);
+  cursor: pointer;
+}
+.chip:hover { background: var(--mainColor); color: var(--headingColor); }
+
+/* --- Split-screen layout: only shift chat when notes are open --- */
+body.with-notes main #inner { margin-right: 42%; } /* match panel width below */
+
+/* --- Right-side Notes column (like the mock) --- */
+.notes-panel {
+  position: fixed;
+  top: 120px;          /* align under your header */
+  right: 0;            /* stick to right edge */
+  bottom: 0;
+  width: 42%;          /* column width (pair with margin-right above) */
+  min-width: 420px;    /* optional safety */
+  background: #ffffff; /* white column */
+  color: #000;
+  border: 0;
+  border-radius: 0;
+  padding: 24px 28px;
+  overflow-y: auto;
+  z-index: 1500;
+  box-shadow: none;    /* no card shadow */
+  border-left: 4px solid rgba(0,0,0,0.2); /* vertical divider */
+}
+.notes-panel.hidden { display: none; }
+
+.notes-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;  /* center "Notes" like the mock */
+  position: relative;
+  margin-bottom: 16px;
+}
+.notes-header h2 {
+  font-size: 56px;
+  line-height: 1;
+  margin: 0;
+  font-weight: 700;
+}
+.notes-close {
+  position: absolute;
+  right: 12px;
+  top: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--borderColor);
+  background: var(--buttonColor);
+  color: #000;
+  cursor: pointer;
+}
+.notes-close:hover { background: var(--mainColor); color: var(--headingColor); }
+
+.notes-ref    { margin: 8px 0 16px; font-size: 20px; font-weight: 600; color: #333; }
+.notes-text   { margin: 6px 0 10px; line-height: 1.55; color: #111; }
+.notes-points { padding-left: 18px; display: grid; gap: 6px; color: #111; }
+
+/* --- Responsive safeguards --- */
+@media (max-width: 1024px) {
+  .notes-panel { width: 40%; min-width: 0; }
+  body.with-notes main #inner { margin-right: 42%; }
+}
+@media (max-width: 900px) {
+  body.with-notes main #inner { margin-right: 0; }
+  .notes-panel {
+    left: 0; right: 0; width: auto;
+    border-left: none;
+    border-top: 3px solid rgba(0,0,0,0.2);
+  }
+}
+
+/* Study bar chips */
+.study-bar {
+  display: flex;
+  gap: 8px;
+  margin: 10px 0;
+}
+.study-bar .chip {
+  background: #eee;
+  border: 1px solid #ccc;
+  border-radius: 15px;
+  padding: 5px 12px;
+  cursor: pointer;
+}
+.study-bar .chip:hover {
+  background: var(--mainColor);
+  color: #fff;
+}
+
+/* Notes panel */
+.notes-panel {
+  position: fixed;
+  top: 70px; /* adjust for header */
+  right: 0;
+  width: 30%;
+  height: calc(100% - 70px);
+  background: white;
+  border-left: 2px solid #ccc;
+  padding: 20px;
+  box-shadow: -2px 0 8px rgba(0,0,0,0.1);
+  overflow-y: auto;
+  z-index: 50;
+  transition: transform 0.3s ease-in-out;
+}
+.notes-panel.hidden {
+  transform: translateX(100%);
+}
+
+/* Chat shrinks when panel is open */
+body.with-notes main {
+  margin-right: 30%;
+}
+
+/* Notes header */
+.notes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+#notes-close {
+  border: none;
+  background: #ddd;
+  border-radius: 50%;
+  padding: 4px 10px;
+  font-size: 18px;
+  cursor: pointer;
 }

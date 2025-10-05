@@ -1,5 +1,5 @@
 // --- Demo: hard-coded verse suggestions ---
-const DEMO_VERSES = [
+/*const DEMO_VERSES = [
   {
     ref: "John 3:3",
     text: "Jesus answered, “Truly, truly, I say to you, unless one is born again he cannot see the kingdom of God.”",
@@ -24,7 +24,7 @@ const DEMO_VERSES = [
     ]
   }
 ];
-
+*/
 
 const main = document.getElementsByTagName("main")[0];
 const body = document.getElementsByTagName("body")[0];
@@ -745,7 +745,8 @@ function addHistoryMessage(sender, text, container) {
     container.scrollTop = container.scrollHeight;
 };
 
-//DEMO
+//DEMO 
+/*
 document.addEventListener('DOMContentLoaded', function () {
   const studyBtn   = document.getElementById('study-toggle');
   const bar        = document.getElementById('study-bar');
@@ -819,7 +820,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 });
-
+*/
 // ============ TTS: Assistant-only reader ============
 console.log("[tts] loaded");
 (function () {
@@ -968,3 +969,75 @@ console.log("[tts] loaded");
     });
   });
 })();
+
+// ---------- Study Mode ----------
+document.addEventListener('DOMContentLoaded', function () {
+  const studyBtn  = document.getElementById('study-toggle');
+  const bar       = document.getElementById('study-bar');
+  const panel     = document.getElementById('notes-panel');
+  const closeBtn  = document.getElementById('notes-close');
+  const refEl     = document.getElementById('notes-ref');
+  const textEl    = document.getElementById('notes-text');
+  const pointsEl  = document.getElementById('notes-points');
+
+  const DEMO_VERSES = [
+    {
+      ref: "John 3:3",
+      text: "Jesus answered, 'Truly, truly, I say to you, unless one is born again he cannot see the kingdom of God.'",
+      notes: ["Spiritual rebirth is required to perceive God's kingdom.", "Context: Nicodemus."]
+    },
+    {
+      ref: "Luke 11:1–4",
+      text: "Jesus teaches the Lord’s Prayer as a model for prayer.",
+      notes: ["Prioritizes God’s name and kingdom.", "Daily dependence, forgiveness, protection from temptation."]
+    },
+    {
+      ref: "John 17:20–21",
+      text: "Jesus prays for future believers to be one, so the world may believe.",
+      notes: ["Unity among believers is a witness.", "From the High Priestly Prayer."]
+    }
+  ];
+
+  function renderChips(suggestions = []) {
+    bar.innerHTML = '';
+    suggestions.forEach(v => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'chip';
+      chip.textContent = v.ref;
+      chip.addEventListener('click', () => openNotes(v));
+      bar.appendChild(chip);
+    });
+  }
+
+  function openNotes(verse) {
+    refEl.textContent = verse.ref || '';
+    textEl.textContent = verse.text || '';
+    pointsEl.innerHTML = '';
+    (verse.notes || []).forEach(n => {
+      const li = document.createElement('li');
+      li.textContent = n;
+      pointsEl.appendChild(li);
+    });
+    panel.classList.remove('hidden');
+    document.body.classList.add('with-notes');
+  }
+
+  function closeNotes() {
+    panel.classList.add('hidden');
+    document.body.classList.remove('with-notes');
+  }
+
+  closeBtn.addEventListener('click', closeNotes);
+
+  let studyOn = false;
+  studyBtn.addEventListener('click', () => {
+    studyOn = !studyOn;
+    if (studyOn) {
+      renderChips(DEMO_VERSES);
+    } else {
+      bar.innerHTML = '';
+      closeNotes();
+    }
+  });
+});
