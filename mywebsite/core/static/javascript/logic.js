@@ -1,334 +1,418 @@
 // --- Demo: hard-coded verse suggestions ---
-/*const DEMO_VERSES = [
-  {
-    ref: "John 3:3",
-    text: "Jesus answered, “Truly, truly, I say to you, unless one is born again he cannot see the kingdom of God.”",
-    notes: [
-      "Jesus speaks to Nicodemus about new birth.",
-      "Introduces the theme of spiritual rebirth.",
-    ]
-  },
-  {
-    ref: "Luke 11:1-4",
-    text: "The Lord’s Prayer: Jesus teaches how to pray.",
-    notes: [
-      "A model for prayer priorities (God’s name, kingdom, daily needs, forgiveness).",
-    ]
-  },
-  {
-    ref: "John 17:20-21",
-    text: "Jesus prays for future believers to be one.",
-    notes: [
-      "Unity is a witness to the world.",
-      "Prayer shows Jesus’ heart for the church.",
-    ]
+// (kept as reference; live demo data is inside Study Mode section below)
+// /*const DEMO_VERSES = [ ... ] */
+
+// keep globals that your CSS/HTML rely on
+const main  = document.getElementsByTagName("main")[0];
+const body  = document.getElementsByTagName("body")[0];
+
+// Avoid clobbering window.history
+const chatHistory = JSON.parse(localStorage.getItem('history')) || [];
+function saveChatHistory(){ localStorage.setItem('history', JSON.stringify(chatHistory)); }
+
+// keep your global font size var used by addHistoryMessage/appendMessage
+let scaledChatFontSize = 16; 
+
+// small helpers
+const $id  = (x) => document.getElementById(x);
+const $one = (sel) => document.querySelector(sel);
+
+// central cache/state (non-invasive)
+const App = {
+  el: {},
+  state: {
+    isSidebarOpen: true,
+    hasChattedOnce: false,
+    ttsOn: false,
   }
-];
-*/
+};
 
-const main = document.getElementsByTagName("main")[0];
-const body = document.getElementsByTagName("body")[0];
-const history = JSON.parse(localStorage.getItem('history')) || [];
+/* =========================================================================
+   DOMContentLoaded – single entry point that calls feature inits
+   ========================================================================= */
+document.addEventListener("DOMContentLoaded", () => {
+  initCacheEls();
 
-document.addEventListener("DOMContentLoaded", function() {
-    let aside = document.getElementsByTagName("aside")[0];
-    let toggleBtn = document.getElementById("toggle-sidebar");
+  // Sidebar + responsive
+  initSidebar();
 
-    let isSidebarOpen = true; // Track sidebar state
+  // settings button
+  initSettingsButton();
 
-    toggleBtn.addEventListener('click', () => {
-        if (isSidebarOpen) {
-            aside.style.left = "-260px";  // Hide sidebar
-            toggleBtn.style.left = "10px";  // Keep button on the left edge
-            toggleBtn.classList.remove("fa-window-maximize");
-            toggleBtn.classList.add("fa-bars"); // Change icon
-            main.style.marginLeft = "0px"; // Adjust main content
-        } else {
-            aside.style.left = "0px"; // Show sidebar
-            toggleBtn.style.left = "200px";  // Move button inside sidebar
-            toggleBtn.classList.remove("fa-bars");
-            toggleBtn.classList.add("fa-window-maximize"); // Change back
-            main.style.marginLeft = "260px"; // Adjust main content
-        }
-        isSidebarOpen = !isSidebarOpen; // Toggle state
-    });
+  // appearance button under settings
+  initAppearanceButton();
 
-    /* can make function look nicer later */
-    function changeMediaQuery(mediaQuery) {
-        if (mediaQuery.matches) {
-            aside.style.left = "-260px";  // Hide sidebar
-            toggleBtn.style.left = "10px";  // Keep button on the left edge
-            toggleBtn.classList.remove("fa-window-maximize");
-            toggleBtn.classList.add("fa-bars"); // Change icon
-            main.style.marginLeft = "0px"; // Adjust main content
-        } else {
-            aside.style.left = "0px"; // Show sidebar
-            toggleBtn.style.left = "200px";  // Move button inside sidebar
-            toggleBtn.classList.remove("fa-bars");
-            toggleBtn.classList.add("fa-window-maximize"); // Change back
-            main.style.marginLeft = "260px"; // Adjust main content
-        }
-        isSidebarOpen = !isSidebarOpen;
-    }
-    let mediaQuery = window.matchMedia("(max-width: 700px)"); // create MediaQueryList object
-    changeMediaQuery(mediaQuery); // call listener function at runtime
-    // attach listener function on state changes
-    mediaQuery.addEventListener("change", function() { 
-        changeMediaQuery(mediaQuery);
-    })
+  // dark / light / high contrast modes
+  initThemes();
 
+  // font size button under settings
+  initFontSizeButton();
+  initFontScaling(); //Customize text size
+
+  // New Chat button
+  initNewChat();
+
+  // ---- SAFE CHAT WIRING ----
+  initChatWiring();
+
+  // Welcome typing effect
+  initWelcomeTyping();
+
+  //about RLB button
+  initAboutPopup();
+
+  // loading chat history as soon as the browser loads
+  initHistoryBoot();
+
+  // ============ TTS: Assistant-only reader ============
+  initTTS();
+
+  // ================== STT (Web Speech API, no models) ==================
+  initSTT();
+
+  // ---------- Study Mode ----------
+  initStudyModeNotesPanel();
 });
 
-// settings button
+/* =========================================================================
+   Element cache (query once)
+   ========================================================================= */
+function initCacheEls(){
+  App.el.aside          = document.getElementsByTagName("aside")[0];
+  App.el.toggleBtn      = $id("toggle-sidebar");
+
+  App.el.settingsBtn    = $id('settings-btn');
+  App.el.settingsPopup  = document.getElementsByClassName("settings-popup")[0];
+
+  App.el.appearanceBtn  = $id('chat-appearance');
+  App.el.appearancePopup= $id("appearance-popup");
+  App.el.closeAppearance= $id("close-appearance");
+
+  App.el.darkModeBox    = $id("dark-mode");
+  App.el.lightModeBox   = $id("light-mode");
+  App.el.contrastModeBox= $id("high-contrast-mode");
+  App.el.root           = document.querySelector(':root');
+  App.el.logoImg        = document.getElementsByTagName("img")[0];
+  App.el.profileBox     = document.getElementsByClassName("profile-icon")[0];
+  App.el.logoBox        = document.getElementsByClassName("logo-container")[0];
+  App.el.formBox        = $id("chat-form");
+  App.el.formInput      = $id("chat-input");
+
+  App.el.sizeBtn        = $id('font-size');
+  App.el.fontSizePopup  = $id('textsize-popup');
+  App.el.closeSizeBtn   = $id("close-textsize");
+  App.el.range          = $id("size-input");
+
+  App.el.newChatBtn     = $id("new-chat-btn");
+  App.el.messagesEl     = $id("chat-messages");
+  App.el.inputEl        = $id("chat-input");
+  App.el.welcomeEl      = $id("welcome-text");
+  App.el.chatForm       = $id("chat-form");
+
+  App.el.histPlaceholder= $id("hist-placeholder");
+  App.el.chatHistorySec = $id("chat-history");
+
+  App.el.aboutLink      = $id('about-link');
+  App.el.aboutPopup     = $id('aboutPopup');
+  App.el.aboutClose     = $id('popup-close');
+
+  // Study mode / notes panel
+  App.el.studyBtn       = $id('study-toggle');
+  App.el.studyBar       = $id('study-bar');
+  App.el.notesPanel     = $id('notes-panel');
+  App.el.notesClose     = $id('notes-close');
+  App.el.notesRef       = $id('notes-ref');
+  App.el.notesText      = $id('notes-text');
+  App.el.notesPoints    = $id('notes-points');
+
+  // TTS / STT buttons (already in HTML)
+  App.el.ttsBtn         = $id("tts-btn");
+  App.el.sttBtn         = $id("stt-mic-btn");
+}
+
+/* =========================================================================
+   Sidebar (with responsive media query)
+   ========================================================================= */
+function initSidebar(){
+  const aside = App.el.aside, toggleBtn = App.el.toggleBtn;
+  if (!aside || !toggleBtn) return;
+
+  function apply(open){
+    App.state.isSidebarOpen = open;
+    aside.style.left = open ? "-0px" : "-260px";
+    toggleBtn.style.left = open ? "200px" : "10px";
+    toggleBtn.classList.toggle("fa-window-maximize", open);
+    toggleBtn.classList.toggle("fa-bars", !open);
+    if (main) main.style.marginLeft = open ? "260px" : "0px";
+  }
+
+  toggleBtn.addEventListener('click', () => apply(!App.state.isSidebarOpen));
+
+  /* can make function look nicer later */
+  function changeMediaQuery(mediaQuery) {
+    // mobile (<=700): hide; desktop: show
+    apply(!mediaQuery.matches);
+  }
+  let mediaQuery = window.matchMedia("(max-width: 700px)");
+  changeMediaQuery(mediaQuery);
+  mediaQuery.addEventListener("change", function() { changeMediaQuery(mediaQuery); });
+}
+
+/* =========================================================================
+   // settings button
+   ========================================================================= */
 let settingsClicked = false; // track settings popup state
-const settingsBtn = document.getElementById('settings-btn');
+function initSettingsButton(){
+  const settingsBtn = App.el.settingsBtn, settingsPopup = App.el.settingsPopup;
+  if (!settingsBtn || !settingsPopup) return;
 
-settingsBtn.addEventListener('mouseover', () => {
+  settingsBtn.addEventListener('mouseover', () => {
     settingsBtn.style.backgroundColor = "var(--mainColor)";
-});
+  });
 
-settingsBtn.addEventListener('mouseout', () => {
+  settingsBtn.addEventListener('mouseout', () => {
     if (!settingsClicked) settingsBtn.style.backgroundColor = "var(--buttonColor)";
-});
+  });
 
-settingsBtn.addEventListener('click', function() {
+  settingsBtn.addEventListener('click', function() {
     settingsClicked = !settingsClicked;
-    let settingsPopup = document.getElementsByClassName("settings-popup")[0];
-
     if (settingsClicked) {
-        settingsBtn.style.backgroundColor = "var(--mainColor)";
-        settingsPopup.style.opacity = "1";
+      settingsBtn.style.backgroundColor = "var(--mainColor)";
+      settingsPopup.style.opacity = "1";
     } else {
-        settingsBtn.style.backgroundColor = "var(--buttonColor)";
-        settingsPopup.style.opacity = "0";
+      settingsBtn.style.backgroundColor = "var(--buttonColor)";
+      settingsPopup.style.opacity = "0";
     }
+  });
+}
 
-});
-
-// appearance button under settings
+/* =========================================================================
+   // appearance button under settings
+   ========================================================================= */
 let appearanceClicked = false;
-const appearanceBtn = document.getElementById('chat-appearance');
-const appearancePopup = document.getElementById("appearance-popup");
-appearanceBtn.addEventListener('mouseover', () => {
+function initAppearanceButton(){
+  const appearanceBtn = App.el.appearanceBtn;
+  const appearancePopup = App.el.appearancePopup;
+  const closeAppearanceBtn = App.el.closeAppearance;
+  if (!appearanceBtn || !appearancePopup || !closeAppearanceBtn) return;
+
+  appearanceBtn.addEventListener('mouseover', () => {
     if (settingsClicked) appearanceBtn.style.backgroundColor = "var(--mainColor)";
-});
-
-appearanceBtn.addEventListener('mouseout', () => {
+  });
+  appearanceBtn.addEventListener('mouseout', () => {
     if (settingsClicked && !appearanceClicked) appearanceBtn.style.backgroundColor = "var(--buttonColor)";
-});
+  });
 
-function handleClick(event) {
-    lightModeBox.focus();
+  function handleClick(event) {
+    const lightModeBox = App.el.lightModeBox;
+    if (lightModeBox) lightModeBox.focus();
     if (event.key === "Enter") {
-        handleAppearance();
+      handleAppearance();
     }
-}
+  }
 
-appearanceBtn.addEventListener("click", handleAppearance);
-function handleAppearance() {
-    if (settingsClicked) {
-        appearanceClicked = !appearanceClicked;
+  appearanceBtn.addEventListener("click", handleAppearance);
+  function handleAppearance() {
+    if (!settingsClicked) return;
+    appearanceClicked = !appearanceClicked;
 
-        if (appearanceClicked) {
-            appearanceBtn.style.backgroundColor = "var(--mainColor)";
-            // add menu display here
-            body.style.pointerEvents = "none"; // you cant click on anything else until you click the x button
-            appearancePopup.style.opacity = 1; // make appearance pop-up show up
-            appearancePopup.style.pointerEvents = "all"; // you can click on the buttons again
-            document.addEventListener("keydown", handleClick);
-        } else {
-            appearanceBtn.style.backgroundColor = "var(--buttonColor)";
-            appearanceClicked = !appearanceClicked; // this sets the appearanceClicked tracking variable to be right again
-            lightModeBox.blur();
-            darkModeBox.blur();
-            contrastModeBox.blur();
-            closeAppearance();
-        }
+    if (appearanceClicked) {
+      appearanceBtn.style.backgroundColor = "var(--mainColor)";
+      // add menu display here
+      body.style.pointerEvents = "none"; // you cant click on anything else until you click the x button
+      appearancePopup.style.opacity = 1; // make appearance pop-up show up
+      appearancePopup.style.pointerEvents = "all"; // you can click on the buttons again
+      document.addEventListener("keydown", handleClick);
+    } else {
+      appearanceBtn.style.backgroundColor = "var(--buttonColor)";
+      appearanceClicked = !appearanceClicked; // this sets the appearanceClicked tracking variable to be right again
+      if (App.el.lightModeBox) App.el.lightModeBox.blur();
+      if (App.el.darkModeBox) App.el.darkModeBox.blur();
+      if (App.el.contrastModeBox) App.el.contrastModeBox.blur();
+      closeAppearance();
     }
-}
+  }
 
-const closeAppearanceBtn = document.getElementById("close-appearance");
-closeAppearanceBtn.addEventListener('click', closeAppearance);
-
-function closeAppearance() {
-    const settingsPopup = document.getElementsByClassName("settings-popup")[0];
-
+  closeAppearanceBtn.addEventListener('click', closeAppearance);
+  function closeAppearance() {
+    const settingsPopup = App.el.settingsPopup;
     appearancePopup.style.opacity = 0; // make popup close
     body.style.pointerEvents="all"; // now you can click on everything again
     appearancePopup.style.pointerEvents = "none";
     appearanceClicked = !(appearanceClicked); // unclick appearance button
     appearanceBtn.style.backgroundColor = "var(--buttonColor)"; 
-    settingsBtn.style.backgroundColor = "var(--buttonColor)";
-    settingsPopup.style.opacity = "0";
+    App.el.settingsBtn.style.backgroundColor = "var(--buttonColor)";
+    if (settingsPopup) settingsPopup.style.opacity = "0";
     settingsClicked = !settingsClicked;
     document.removeEventListener("keydown", handleClick);
+  }
 }
 
-// dark mode
-const darkModeBox = document.getElementById("dark-mode");
-const lightModeBox = document.getElementById("light-mode");
-const contrastModeBox = document.getElementById("high-contrast-mode");
-const root = document.querySelector(':root');
-const aside2 = document.getElementsByTagName("aside")[0];
-const logoImg = document.getElementsByTagName("img")[0];
-const profileBox = document.getElementsByClassName("profile-icon")[0];
-const logoBox = document.getElementsByClassName("logo-container")[0];
-const formBox = document.getElementById("chat-form");
-const formInput = document.getElementById("chat-input");
+/* =========================================================================
+   // dark mode / light mode / high contrast mode
+   ========================================================================= */
+function initThemes(){
+  const darkModeBox = App.el.darkModeBox;
+  const lightModeBox = App.el.lightModeBox;
+  const contrastModeBox = App.el.contrastModeBox;
 
-darkModeBox.addEventListener("change", () => {
-    if (darkModeBox.checked) {
-        root.style.setProperty('--interfaceColor', '#343541');
-        root.style.setProperty('--asideColor', '#202123');
-        root.style.setProperty('--textColor', 'rgb(209, 213, 219)');
-        root.style.setProperty('--borderColor', 'hsla(0,0%,100%,.2)');
-        root.style.setProperty('--buttonColor', '#40414f');
-        root.style.setProperty('--headingColor', 'rgb(255,255,255)');
-        root.style.setProperty('--mainColor', 'var(--brand-blue)');
-        profileBox.style.border = '1px solid var(--borderColor)';
-        logoImg.style.filter = 'brightness(1) invert(0)'; // default for image
-        logoBox.style.backgroundColor = 'rgb(60, 60, 73)';
-        logoBox.style.borderBottom = 'none';
-        aside2.style.borderRight = 'none';
-        formBox.style.backgroundColor = 'rgb(71, 72, 87)';
-        formBox.style.border = 'none';
-        formInput.style.color = 'white';
+  const root = App.el.root;
+  const aside2 = App.el.aside;
+  const logoImg = App.el.logoImg;
+  const profileBox = App.el.profileBox;
+  const logoBox = App.el.logoBox;
+  const formBox = App.el.formBox;
+  const formInput = App.el.formInput;
 
-        root.style.setProperty('--backgroundColorUser', 'var(--brand-red)');
-        root.style.setProperty('--ColorUser', 'white');
-        root.style.setProperty('--borderUser', 'none');
- 
-        root.style.setProperty('--backgroundColorBot', '#2D5D5D');
-        root.style.setProperty('--ColorBot', 'white');
-        root.style.setProperty('--borderBot', 'none');
-    }
-})
+  if (darkModeBox) darkModeBox.addEventListener("change", () => {
+    if (!darkModeBox.checked) return;
+    root.style.setProperty('--interfaceColor', '#343541');
+    root.style.setProperty('--asideColor', '#202123');
+    root.style.setProperty('--textColor', 'rgb(209, 213, 219)');
+    root.style.setProperty('--borderColor', 'hsla(0,0%,100%,.2)');
+    root.style.setProperty('--buttonColor', '#40414f');
+    root.style.setProperty('--headingColor', 'rgb(255,255,255)');
+    root.style.setProperty('--mainColor', 'var(--brand-blue)');
+    if (profileBox) profileBox.style.border = '1px solid var(--borderColor)';
+    if (logoImg) logoImg.style.filter = 'brightness(1) invert(0)'; // default for image
+    if (logoBox){ logoBox.style.backgroundColor = 'rgb(60, 60, 73)'; logoBox.style.borderBottom = 'none'; }
+    if (aside2) aside2.style.borderRight = 'none';
+    if (formBox){ formBox.style.backgroundColor = 'rgb(71, 72, 87)'; formBox.style.border = 'none'; }
+    if (formInput) formInput.style.color = 'white';
 
-lightModeBox.addEventListener("change", () => {
-    if (lightModeBox.checked) {
-        //root.style.setProperty('--interfaceColor', 'rgb(126,114,114)');
-        root.style.setProperty('--interfaceColor', 'rgb(255,255,255)');
-        root.style.setProperty('--asideColor', '#d4c6b4');
-        root.style.setProperty('--textColor', '#1a1a1a');
-        root.style.setProperty('--borderColor', 'rgba(0,0,0,0.2)');
-        root.style.setProperty('--buttonColor', '#f0f0f0');
-        root.style.setProperty('--headingColor', '#000000');
-        root.style.setProperty('--mainColor', 'var(--brand-blue)');
-        profileBox.style.border = 'none';
-        logoImg.style.filter = 'brightness(1) invert(0)'; // default for image
-        logoBox.style.borderBottom = 'none';
-        logoBox.style.backgroundColor = '#d4c6b4';
-        aside2.style.borderRight = 'none';
-        formBox.style.backgroundColor = '#d4c6b4';
-        formBox.style.border = 'none';
-        formInput.style.color = 'var(--brand-red)';
- 
-        root.style.setProperty('--backgroundColorUser', 'var(--brand-red)');
-        root.style.setProperty('--ColorUser', 'white');
-        root.style.setProperty('--borderUser', 'none');
- 
-        root.style.setProperty('--backgroundColorBot', 'var(--brand-blue)');
-        root.style.setProperty('--ColorBot', 'white');
-        root.style.setProperty('--borderBot', 'none');
-    }
-})
+    root.style.setProperty('--backgroundColorUser', 'var(--brand-red)');
+    root.style.setProperty('--ColorUser', 'white');
+    root.style.setProperty('--borderUser', 'none');
 
-contrastModeBox.addEventListener("change", () => {
-    if (contrastModeBox.checked) {
-        root.style.setProperty('--interfaceColor', 'black');
-        root.style.setProperty('--asideColor', 'black');
-        root.style.setProperty('--textColor', 'white');
-        root.style.setProperty('--borderColor', 'white');
-        root.style.setProperty('--buttonColor', 'black');
-        root.style.setProperty('--headingColor', 'white');
-        root.style.setProperty('--mainColor', '#343541');
-        profileBox.style.border = '1px solid var(--borderColor)'; // put border around profile icon
-        logoImg.style.filter = 'brightness(0) invert(1)'; // turns image white
-        logoBox.style.borderBottom = '1px solid var(--borderColor)'; 
-        logoBox.style.backgroundColor = 'black';
-        aside2.style.borderRight = '1px solid var(--borderColor)';
-        formBox.style.backgroundColor = 'black';
-        formBox.style.border = '1px solid var(--borderColor)';
-        formInput.style.color = 'white';
+    root.style.setProperty('--backgroundColorBot', '#2D5D5D');
+    root.style.setProperty('--ColorBot', 'white');
+    root.style.setProperty('--borderBot', 'none');
+  });
 
-        // for chat messages
-        root.style.setProperty('--backgroundColorUser', 'black');
-        root.style.setProperty('--ColorUser', '#F16F7C');
-        root.style.setProperty('--borderUser', '1px solid #F16F7C');
+  if (lightModeBox) lightModeBox.addEventListener("change", () => {
+    if (!lightModeBox.checked) return;
+    root.style.setProperty('--interfaceColor', 'rgb(255,255,255)');
+    root.style.setProperty('--asideColor', '#d4c6b4');
+    root.style.setProperty('--textColor', '#1a1a1a');
+    root.style.setProperty('--borderColor', 'rgba(0,0,0,0.2)');
+    root.style.setProperty('--buttonColor', '#f0f0f0');
+    root.style.setProperty('--headingColor', '#000000');
+    root.style.setProperty('--mainColor', 'var(--brand-blue)');
+    if (profileBox) profileBox.style.border = 'none';
+    if (logoImg) logoImg.style.filter = 'brightness(1) invert(0)'; // default for image
+    if (logoBox){ logoBox.style.borderBottom = 'none'; logoBox.style.backgroundColor = '#d4c6b4'; }
+    if (aside2) aside2.style.borderRight = 'none';
+    if (formBox){ formBox.style.backgroundColor = '#d4c6b4'; formBox.style.border = 'none'; }
+    if (formInput) formInput.style.color = 'var(--brand-red)';
 
-        root.style.setProperty('--backgroundColorBot', 'black');
-        root.style.setProperty('--ColorBot', 'var(--brand-blue)');
-        root.style.setProperty('--borderBot', '1px solid var(--brand-blue)');
-    }
-})
+    root.style.setProperty('--backgroundColorUser', 'var(--brand-red)');
+    root.style.setProperty('--ColorUser', 'white');
+    root.style.setProperty('--borderUser', 'none');
 
-// font size button under settings
+    root.style.setProperty('--backgroundColorBot', 'var(--brand-blue)');
+    root.style.setProperty('--ColorBot', 'white');
+    root.style.setProperty('--borderBot', 'none');
+  });
+
+  if (contrastModeBox) contrastModeBox.addEventListener("change", () => {
+    if (!contrastModeBox.checked) return;
+    root.style.setProperty('--interfaceColor', 'black');
+    root.style.setProperty('--asideColor', 'black');
+    root.style.setProperty('--textColor', 'white');
+    root.style.setProperty('--borderColor', 'white');
+    root.style.setProperty('--buttonColor', 'black');
+    root.style.setProperty('--headingColor', 'white');
+    root.style.setProperty('--mainColor', '#343541');
+    if (profileBox) profileBox.style.border = '1px solid var(--borderColor)'; // put border around profile icon
+    if (logoImg) logoImg.style.filter = 'brightness(0) invert(1)'; // turns image white
+    if (logoBox){ logoBox.style.borderBottom = '1px solid var(--borderColor)'; logoBox.style.backgroundColor = 'black'; }
+    if (aside2) aside2.style.borderRight = '1px solid var(--borderColor)';
+    if (formBox){ formBox.style.backgroundColor = 'black'; formBox.style.border = '1px solid var(--borderColor)'; }
+    if (formInput) formInput.style.color = 'white';
+
+    // for chat messages
+    root.style.setProperty('--backgroundColorUser', 'black');
+    root.style.setProperty('--ColorUser', '#F16F7C');
+    root.style.setProperty('--borderUser', '1px solid #F16F7C');
+
+    root.style.setProperty('--backgroundColorBot', 'black');
+    root.style.setProperty('--ColorBot', 'var(--brand-blue)');
+    root.style.setProperty('--borderBot', '1px solid var(--brand-blue)');
+  });
+}
+
+/* =========================================================================
+   // font size button under settings
+   ========================================================================= */
 let sizeClicked = false;
-const sizeBtn = document.getElementById('font-size');
-const fontSizePopup = document.getElementById('textsize-popup')
-sizeBtn.addEventListener('mouseover', () => {
+function initFontSizeButton(){
+  const sizeBtn = App.el.sizeBtn;
+  const fontSizePopup = App.el.fontSizePopup;
+  const closeSizeBtn = App.el.closeSizeBtn;
+  if (!sizeBtn || !fontSizePopup || !closeSizeBtn) return;
+
+  sizeBtn.addEventListener('mouseover', () => {
     if (settingsClicked) sizeBtn.style.backgroundColor = "var(--mainColor)";
-})
-
-sizeBtn.addEventListener('mouseout', () => {
+  });
+  sizeBtn.addEventListener('mouseout', () => {
     if (settingsClicked && !sizeClicked) sizeBtn.style.backgroundColor = "var(--buttonColor)";
-})
+  });
 
-function handleFontClick(event) {
-    range.focus();
+  function handleFontClick(event) {
+    const range = App.el.range;
+    if (range) range.focus();
     if (event.key === "Enter") {
-        handleTextSize();
+      handleTextSize();
     }
-}
+  }
 
-sizeBtn.addEventListener("click", handleTextSize);
+  sizeBtn.addEventListener("click", handleTextSize);
+  function handleTextSize() {
+    if (!settingsClicked) return;
+    sizeClicked = !sizeClicked;
 
-function handleTextSize() {
-    if (settingsClicked) {
-        sizeClicked = !sizeClicked;
-
-        if (sizeClicked) {
-            sizeBtn.style.backgroundColor = "var(--mainColor)";
-            // add menu display here
-            body.style.pointerEvents = "none"; // you cant click on anything else until you click the x button
-            fontSizePopup.style.opacity = 1; // make pop-up show up
-            fontSizePopup.style.pointerEvents = "all"; // you can click on the buttons again
-            document.addEventListener("keydown", handleFontClick);
-        } else {
-            sizeBtn.style.backgroundColor = "var(--buttonColor)";
-            sizeClicked = !sizeClicked; // fixes the sizeClicked variable to show correctly
-            range.blur();
-            closeSize();
-        }
+    if (sizeClicked) {
+      sizeBtn.style.backgroundColor = "var(--mainColor)";
+      // add menu display here
+      body.style.pointerEvents = "none"; // you cant click on anything else until you click the x button
+      fontSizePopup.style.opacity = 1; // make pop-up show up
+      fontSizePopup.style.pointerEvents = "all"; // you can click on the buttons again
+      document.addEventListener("keydown", handleFontClick);
+    } else {
+      sizeBtn.style.backgroundColor = "var(--buttonColor)";
+      sizeClicked = !sizeClicked; // fixes the sizeClicked variable to show correctly
+      if (App.el.range) App.el.range.blur();
+      closeSize();
     }
-}
+  }
 
-const closeSizeBtn = document.getElementById("close-textsize");
-closeSizeBtn.addEventListener("click", closeSize);
-
-function closeSize() {
-    const settingsPopup = document.getElementsByClassName("settings-popup")[0];
+  closeSizeBtn.addEventListener("click", closeSize);
+  function closeSize() {
+    const settingsPopup = App.el.settingsPopup;
     fontSizePopup.style.opacity = 0; // make popup close
     body.style.pointerEvents="all"; // now you can click on everything again
     fontSizePopup.style.pointerEvents = "none";
     sizeClicked = !(sizeClicked); // unclick size button
     sizeBtn.style.backgroundColor = "var(--buttonColor)"; 
-    settingsBtn.style.backgroundColor = "var(--buttonColor)";
-    settingsPopup.style.opacity = "0";
+    App.el.settingsBtn.style.backgroundColor = "var(--buttonColor)";
+    if (settingsPopup) settingsPopup.style.opacity = "0";
     settingsClicked = !settingsClicked;
     document.removeEventListener("keydown", handleFontClick);
+  }
 }
 
-//Customize text size
-// the scale function is:
-// num * (scalefactor)^index
+/* =========================================================================
+   //Customize text size
+   // the scale function is: num * (scalefactor)^index
+   ========================================================================= */
 function scaleFunction (num, scalefactor, index)  {
-    return num * (scalefactor ** index)
+  return num * (scalefactor ** index)
 }
-const range = document.getElementById("size-input");
-let scaledChatFontSize = 16 // storing chat message font size in global var so that you can reference it when creating chat bubbles
-range.addEventListener("input", () => {
-    let index = range.value;
+function initFontScaling(){
+  const range = App.el.range;
+  if (!range) return;
+  range.addEventListener("input", () => {
+    let index = Number(range.value || 0);
     const chatMessageSize = 15; // what user and bot chat messages are set to in the CSS
     const inputMessageSize = 16; // what the chat input message is set to in the CSS
     const scalefactor = 1.15;
@@ -338,32 +422,32 @@ range.addEventListener("input", () => {
 
     // handle input box first
     if (userInputMsg) {
-        userInputMsg.style.fontSize = scaleFunction(inputMessageSize, scalefactor, index) + "px";
+      userInputMsg.style.fontSize = scaleFunction(inputMessageSize, scalefactor, index) + "px";
     }
 
     // handle chat messages next if they exist
     scaledChatFontSize = scaleFunction(chatMessageSize, scalefactor, index);
     userChatMsgs.forEach(function(userResponse){
-        userResponse.style.fontSize = scaledChatFontSize + "px";
-    })
-
+      userResponse.style.fontSize = scaledChatFontSize + "px";
+    });
     chatBoxMsgs.forEach(function(chatResponse){
-        chatResponse.style.fontSize = scaledChatFontSize + "px";
-   })
-});
+      chatResponse.style.fontSize = scaledChatFontSize + "px";
+    });
+  });
+}
 
+/* =========================================================================
+   New Chat button
+   ========================================================================= */
+function initNewChat(){
+  const newChatBtn = App.el.newChatBtn;
+  const messagesEl = App.el.messagesEl;
+  const inputEl    = App.el.inputEl;
+  const welcomeEl  = App.el.welcomeEl;
 
-document.addEventListener("DOMContentLoaded", function () {
-  const newChatBtn   = document.getElementById("new-chat-btn");
-  const messagesEl   = document.getElementById("chat-messages");
-  const inputEl      = document.getElementById("chat-input");
-  const welcomeEl    = document.getElementById("welcome-text");
-
-  if (!newChatBtn) return;
+  if (!newChatBtn || !messagesEl || !inputEl) return;
 
   newChatBtn.addEventListener("click", () => {
-    // (Optional) save current conversation here before clearing, if you want persistence
-
     // Clear current messages only
     messagesEl.innerHTML = "";
 
@@ -372,7 +456,10 @@ document.addEventListener("DOMContentLoaded", function () {
       welcomeEl.style.display = "block";
       welcomeEl.textContent = ""; // reset typing text
       // re-run the typing effect if desired:
-      typeWelcomeAgain(welcomeEl, "Welcome to ChatRLB!", 75);
+      let i = 0; const msg = "Welcome to ChatRLB!";
+      (function step(){
+        if (i < msg.length) { welcomeEl.textContent += msg.charAt(i++); setTimeout(step, 75); }
+      })();
     }
 
     // Reset and focus input
@@ -383,28 +470,17 @@ document.addEventListener("DOMContentLoaded", function () {
     messagesEl.scrollTop = messagesEl.scrollHeight;
 
     // Update global variable so that chat history still works when new chat button clicked
-    hasChattedOnce = false;
+    App.state.hasChattedOnce = false;
   });
+}
 
-  function typeWelcomeAgain(node, msg, speedMs) {
-    let i = 0;
-    function step() {
-      if (i < msg.length) {
-        node.textContent += msg.charAt(i++);
-        setTimeout(step, speedMs);
-      }
-    }
-    step();
-  }
-});
-
-let hasChattedOnce = false; // Global so that it can change when new chat button is pressed.
-
-// ---- SAFE CHAT WIRING ----
-document.addEventListener("DOMContentLoaded", function () {
-  const chatContainer = document.getElementById("chat-messages");
-  const chatForm      = document.getElementById("chat-form");
-  const chatInput     = document.getElementById("chat-input");
+/* =========================================================================
+   // ---- SAFE CHAT WIRING ----
+   ========================================================================= */
+function initChatWiring(){
+  const chatContainer = App.el.messagesEl;
+  const chatForm      = App.el.chatForm;
+  const chatInput     = App.el.inputEl;
 
   if (!chatForm || !chatInput || !chatContainer) {
     console.warn("[chat] missing form/input/container");
@@ -446,27 +522,29 @@ document.addEventListener("DOMContentLoaded", function () {
 
       // --- history handling ---
       const messageSet = { question: message, chatResponse: botText };
-      if (hasChattedOnce === false) {
+      if (App.state.hasChattedOnce === false) {
         const chatHistoryEntry = extractMainIdea(botText);
         const chatHistoryDate  = new Date().toLocaleString('en-US', { month: 'short', day: '2-digit' });
         const historyObject = { keyword: chatHistoryEntry, date: chatHistoryDate, messages: [messageSet] };
-        history.push(historyObject);
-        localStorage.setItem('history', JSON.stringify(history));
-        const idx = history.length - 1;
-        createHistory(history[idx].keyword, history[idx].date, idx);
-        hasChattedOnce = true;
+        chatHistory.push(historyObject);
+        saveChatHistory();
+        const idx = chatHistory.length - 1;
+        createHistory(chatHistory[idx].keyword, chatHistory[idx].date, idx);
+        App.state.hasChattedOnce = true;
       } else {
-        history[history.length - 1].messages.push(messageSet);
-        localStorage.setItem('history', JSON.stringify(history));
+        chatHistory[chatHistory.length - 1].messages.push(messageSet);
+        saveChatHistory();
       }
     } catch (err) {
       appendMessage("bot", "⚠️ Error: Could not contact server.", chatContainer);
       console.warn("[chat] fetch error:", err);
     }
   });
-});
+}
 
-// Append message helper (fires TTS event for bot)
+/* =========================================================================
+   Append message helper (fires TTS event for bot)
+   ========================================================================= */
 function appendMessage(sender, text, containerEl) {
   const container = containerEl || document.getElementById("chat-messages");
   if (!container) return;
@@ -488,7 +566,9 @@ function appendMessage(sender, text, containerEl) {
   }
 }
 
-// CSRF helper
+/* =========================================================================
+   // CSRF helper
+   ========================================================================= */
 function getCSRFToken() {
   let cookieValue = null;
   const cookies = document.cookie.split(';');
@@ -502,13 +582,15 @@ function getCSRFToken() {
   return cookieValue;
 }
 
-// Keyword extraction for history
+/* =========================================================================
+   // Keyword extraction for history
+   ========================================================================= */
 function extractMainIdea(text) {
   const stopWords = new Set(["the","a","an","is","of","and","in","to","for","on","with","as","at","about","you","this","that","he","not","jesus","god"]);
   // parse text to get rid of html markdown first
-  const parser = new DOMParser()
-  const words = (parser.parseFromString(text, 'text/html').body.textContent.toLowerCase().match(/\b[a-zA-Z\'\’]+\b/g) || [])
-  .filter(w => !stopWords.has(w));
+  const parser = new DOMParser();
+  const words = (parser.parseFromString(text || "", 'text/html').body.textContent.toLowerCase().match(/\b[a-zA-Z\'\’]+\b/g) || [])
+    .filter(w => !stopWords.has(w));
   const counts = {};
   for (const w of words) counts[w] = (counts[w] || 0) + 1;
   const top = Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
@@ -517,318 +599,123 @@ function extractMainIdea(text) {
   return word.charAt(0).toUpperCase() + word.slice(1);
 }
 
-/*
-document.addEventListener("DOMContentLoaded", function () {
-  const chatContainer = document.getElementById("chat-messages");
-  const chatForm      = document.getElementById("chat-form");
-  const chatInput     = document.getElementById("chat-input");
-  // Allow Enter to submit the chat (and Shift+Enter to add a new line)
-chatInput.addEventListener("keydown", function (e) {
-  if (e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault();       // stop newline
-    chatForm.requestSubmit(); // triggers the form's submit event
-  }
-})});
-
-
-  if (!chatForm || chatForm.dataset.bound === "1") return;
-  chatForm.dataset.bound = "1"; // prevent duplicate listeners
-
-  chatForm.addEventListener("submit", async function (e) {
-    e.preventDefault();
-    const message = chatInput.value.trim();
-    if (!message) return;
-
-    appendMessage("user", message);
-    chatInput.value = "";
-
-    try {
-      const response = await fetch("/chatbot/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": getCSRFToken()
-        },
-        body: JSON.stringify({ message })
-      });
-      const data = await response.json();
-      appendMessage("bot", data.reply || "No response");
-
-      // create message object to store message
-      const messageSet = {
-        question: message,
-        chatResponse: data.reply
-      };
-      //console.log(messageSet);
-      //console.log("hasChattedOnce? " + hasChattedOnce);
-
-      if (hasChattedOnce === false) {
-        // first time chatting
-        const chatHistoryEntry = extractMainIdea(data.reply);
-        const chatHistoryDate = new Date().toLocaleString('en-US', { month: 'short', day: '2-digit'});
-        // create history object to store history, date, and messages
-        const historyObject = {
-            keyword: chatHistoryEntry,
-            date: chatHistoryDate,
-            messages: [messageSet]
-        };
-        //console.log(historyObject);
-        history.push(historyObject);
-        localStorage.setItem('history', JSON.stringify(history));
-        let historyLen = history.length - 1;
-        createHistory(history[historyLen].keyword, history[historyLen].date, historyLen); // call global function
-
-        hasChattedOnce = !hasChattedOnce; // only run the if block for the first message
-
-      } else {
-        // stored in same history object
-        history[history.length - 1].messages.push(messageSet);
-        localStorage.setItem('history', JSON.stringify(history));
-        //console.log(history);
-        //console.log(history.length);
-        
-      }
-    } catch (err) {
-      appendMessage("bot", "⚠️ Error: Could not contact server.");
+/* =========================================================================
+   Welcome typing (original behavior)
+   ========================================================================= */
+function initWelcomeTyping(){
+  const welcomeText = $id("welcome-text");
+  if (!welcomeText) return;
+  const message = "Welcome to ChatRLB!";
+  let index = 0;
+  function typeNextChar() {
+    if (index < message.length) {
+      welcomeText.textContent += message.charAt(index);
+      index++;
+      setTimeout(typeNextChar, 75); // Speed in ms
     }
+  }
+  typeNextChar();
+}
+
+/* =========================================================================
+   //about RLB button
+   ========================================================================= */
+function initAboutPopup(){
+  const aboutLink = App.el.aboutLink;
+  const popup = App.el.aboutPopup;
+  const closePopup = App.el.aboutClose;
+  if (!aboutLink || !popup || !closePopup) return;
+
+  aboutLink.addEventListener('click', function (e) {
+    e.preventDefault(); // Prevent link jump
+    popup.classList.remove('hidden'); // Show popup
   });
 
-  function appendMessage(sender, text) {
-    const welcome = document.querySelector("#welcome-text");
-    if (welcome) welcome.style.display = "none";
+  closePopup.addEventListener('click', function () {
+    popup.classList.add('hidden'); // Hide popup
+  });
 
-    const msg = document.createElement("div");
-    msg.classList.add("chat-message", sender);
-    msg.innerHTML = `<p>${text}</p>`;
-    msg.style.fontSize = scaledChatFontSize + "px";
-    chatContainer.appendChild(msg);
-
-    // Keep the newest message visible
-    chatContainer.scrollTop = chatContainer.scrollHeight;
-
-    // NEW: fire event only when assistant/bot is appended (so TTS reads assistant only)
-    if (sender === "bot") {
-      const event = new CustomEvent("assistant-appended", { detail: { text } });
-      document.dispatchEvent(event);
-
-  }
-
-  function getCSRFToken() {
-    let cookieValue = null;
-    const cookies = document.cookie.split(';');
-    for (let cookie of cookies) {
-      const trimmed = cookie.trim();
-      if (trimmed.startsWith("csrftoken=")) {
-        cookieValue = trimmed.substring("csrftoken=".length);
-        break;
-      }
+  // Close if click outside popup content
+  window.addEventListener('click', function (e) {
+    if (e.target === popup) {
+      popup.classList.add('hidden');
     }
-    return cookieValue;
-  }
+  });
+}
 
-  // sometimes it can return unlikely words
-  // if word returned that is undesired, add it to the set of stopWords (for right now)
-  function extractMainIdea(text) {
-    const stopWords = new Set(["the", "a", "an", "is", "of", "and", "in", "to", "for", "on", "with", "as", "at", "about", "you", "this", "that", "he", "not", "jesus", "god"]);
-    const words = text.toLowerCase().match(/\b[a-zA-Z\'\’]+\b/g); // Tokenize and convert to lowercase
-    const wordCounts = {};
-
-    // Don't include the stopwords
-    for (const word of words) {
-        if (!stopWords.has(word)) {
-            wordCounts[word] = (wordCounts[word] || 0) + 1;
-        }
-    }
-    //console.log(wordCounts);
-
-    // Sort by frequency (descending order)
-    const sortedKeywords = Object.entries(wordCounts)
-    .sort(([, countA], [, countB]) => countB - countA)
-    .map(([word]) => word);
-
-    //console.log(sortedKeywords);
-    const topWord = sortedKeywords[0]; // Get most frequent word
-    return topWord.charAt(0).toUpperCase() + topWord.slice(1); // Return most frequent word capitalized
-    }
-
-};
-*/
-document.addEventListener("DOMContentLoaded", function () {
-    const welcomeText = document.getElementById("welcome-text");
-    const message = "Welcome to ChatRLB!";
-    let index = 0;
-
-    function typeNextChar() {
-        if (index < message.length) {
-            welcomeText.textContent += message.charAt(index);
-            index++;
-            setTimeout(typeNextChar, 75); // Speed in ms
-        }
-    }
-
-    typeNextChar();
-});
-
-//about RLB button
-document.addEventListener('DOMContentLoaded', function () {
-    const aboutLink = document.getElementById('about-link');
-    const popup = document.getElementById('aboutPopup');
-    const closePopup = document.getElementById('popup-close');
-
-    aboutLink.addEventListener('click', function (e) {
-        e.preventDefault(); // Prevent link jump
-        popup.classList.remove('hidden'); // Show popup
-    });
-
-    closePopup.addEventListener('click', function () {
-        popup.classList.add('hidden'); // Hide popup
-    });
-
-    // Close if click outside popup content
-    window.addEventListener('click', function (e) {
-        if (e.target === popup) {
-            popup.classList.add('hidden');
-        }
-    });
-});
-
-// creates history entry in sidebar and sets event listener to load the messages in that history entry
+/* =========================================================================
+   // creates history entry in sidebar and sets event listener to load the messages in that history entry
+   ========================================================================= */
 function createHistory(keyword, date, index) {
-    let histPlaceHolder = document.getElementById("hist-placeholder");
-    if (histPlaceHolder) histPlaceHolder.style.display = "none";
-    const newHist = document.createElement('span');
-    const keywordP = document.createElement('p');
-    keywordP.textContent = `${keyword}`;
-    keywordP.classList.add('hist-kw');
-    const keywordD = document.createElement('p');
-    keywordD.textContent = `${date}`
-    newHist.classList.add('history-entry');
-    newHist.appendChild(keywordP);
-    newHist.appendChild(keywordD);
+  let histPlaceHolder = document.getElementById("hist-placeholder");
+  const host = App.el.chatHistorySec || histPlaceHolder?.parentElement || $one("aside") || document.body;
+
+  if (histPlaceHolder) histPlaceHolder.style.display = "none";
+  const newHist = document.createElement('span');
+  const keywordP = document.createElement('p');
+  keywordP.textContent = `${keyword || "Conversation"}`;
+  keywordP.classList.add('hist-kw');
+  const keywordD = document.createElement('p');
+  keywordD.textContent = `${date || ""}`;
+  newHist.classList.add('history-entry');
+  newHist.appendChild(keywordP);
+  newHist.appendChild(keywordD);
+
+  if (histPlaceHolder) {
     histPlaceHolder.insertAdjacentElement("afterend", newHist); // add most recent to top
-    keywordP.addEventListener("click", function() {
-        loadHistory(index);
-    });
+  } else {
+    host.prepend(newHist);
+  }
+
+  keywordP.addEventListener("click", function() {
+    loadHistory(index);
+  });
 }
 
 // loading chat history as soon as the browser loads
-document.addEventListener("DOMContentLoaded", function() {
-    for (let i=0; i<history.length; i++) {
-        createHistory(history[i].keyword, history[i].date, i);
-    }
-});
+function initHistoryBoot(){
+  for (let i=0; i<chatHistory.length; i++) {
+    createHistory(chatHistory[i].keyword, chatHistory[i].date, i);
+  }
+}
 
 // loading by index avoids bug if keywords have the same name
 function loadHistory(index) {
-    const chatContainer = document.getElementById("chat-messages");
-    // clear chat before history entry gets loaded
-    chatContainer.innerHTML = '';
-    // load each message in the history entry
-    history[index].messages.forEach(function (message){
-        addHistoryMessage("user", message.question, chatContainer);
-        addHistoryMessage("bot", message.chatResponse, chatContainer);
-    });
+  const chatContainer = document.getElementById("chat-messages");
+  if (!chatContainer) return;
+  // clear chat before history entry gets loaded
+  chatContainer.innerHTML = '';
+  // load each message in the history entry
+  (chatHistory[index]?.messages || []).forEach(function (message){
+    addHistoryMessage("user", message.question, chatContainer);
+    addHistoryMessage("bot", message.chatResponse, chatContainer);
+  });
 };
 
 // load the chat messages back
 function addHistoryMessage(sender, text, container) {
-    const welcome = document.querySelector("#welcome-text");
+  const welcome = document.querySelector("#welcome-text");
 
-    if (welcome) welcome.style.display = "none";
-    const msg = document.createElement("div");
-    msg.classList.add("chat-message", sender);
-    msg.innerHTML = `<p>${text}</p>`;
-    msg.style.fontSize = scaledChatFontSize + "px";
-    container.appendChild(msg);
+  if (welcome) welcome.style.display = "none";
+  const msg = document.createElement("div");
+  msg.classList.add("chat-message", sender);
+  msg.innerHTML = `<p>${text}</p>`;
+  msg.style.fontSize = scaledChatFontSize + "px";
+  container.appendChild(msg);
 
-    // Keep the newest message visible
-    container.scrollTop = container.scrollHeight;
+  // Keep the newest message visible
+  container.scrollTop = container.scrollHeight;
 };
 
-//DEMO 
-/*
-document.addEventListener('DOMContentLoaded', function () {
-  const studyBtn   = document.getElementById('study-toggle');
-  const bar        = document.getElementById('study-bar');
-  //const notesList  = document.getElementById('notes-list');
-
-  const vm         = document.getElementById('verseModal');
-  const vmClose    = document.getElementById('verseModal-close');
-  const vmRef      = document.getElementById('vm-ref');
-  const vmText     = document.getElementById('vm-text');
-  const vmNotes    = document.getElementById('vm-notes');
-
-  let studyOn = false;
-
-  function renderChips(verses) {
-    bar.innerHTML = '';
-    verses.forEach(v => {
-      const chip = document.createElement('button');
-      chip.type = 'button';
-      chip.className = 'chip';
-      chip.textContent = v.ref;
-      chip.addEventListener('click', () => openVerse(v));
-      bar.appendChild(chip);
-    });
-  }
-
-  function openVerse(v) {
-    // fill modal
-    vmRef.textContent  = v.ref;
-    vmText.textContent = v.text;
-    vmNotes.innerHTML  = '';
-    v.notes.forEach(n => {
-      const li = document.createElement('li');
-      li.textContent = n;
-      vmNotes.appendChild(li);
-    });
-
-    
-
-    // show modal
-    vm.classList.remove('hidden');
-  }
-
-  function closeVerseModal() { vm.classList.add('hidden'); }
-  vmClose.addEventListener('click', closeVerseModal);
-  window.addEventListener('click', (e) => { if (e.target === vm) closeVerseModal(); });
-  window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !vm.classList.contains('hidden')) closeVerseModal(); });
-
-  // Toggle Study Mode
-  if (studyBtn) {
-    studyBtn.addEventListener('click', () => {
-      studyOn = !studyOn;
-      studyBtn.style.backgroundColor = studyOn ? 'var(--mainColor)' : 'var(--buttonColor)';
-      bar.classList.toggle('hidden', !studyOn);
-
-      if (studyOn) {
-        renderChips(DEMO_VERSES);
-      } else {
-        bar.innerHTML = '';
-      }
-    });
-  }
-
-  // Optional: also show fresh chips after each user send (fake “AI suggestions”)
-  const chatForm  = document.getElementById('chat-form');
-  if (chatForm) {
-    chatForm.addEventListener('submit', () => {
-      if (studyOn) {
-        // For demo: re-render the same chips; later plug in real suggestions
-        renderChips(DEMO_VERSES);
-      }
-    });
-  }
-});
-*/
-// ============ TTS: Assistant-only reader ============
-console.log("[tts] loaded");
-(function () {
+/* =========================================================================
+   // ============ TTS: Assistant-only reader ============
+   ========================================================================= */
+function initTTS(){
+  console.log("[tts] loaded");
   const synth = window.speechSynthesis || null;
   if (!synth) { console.warn("[tts] no window.speechSynthesis available"); return; }
 
   let ttsOn = false;
-
   function updateTtsBtn() {
     const btn = document.getElementById("tts-btn");
     if (!btn) return;
@@ -874,15 +761,16 @@ console.log("[tts] loaded");
     if (text) speak(text);
   });
 
-  document.addEventListener("DOMContentLoaded", ensureTtsBtn);
-})();
+  ensureTtsBtn();
+}
 
-// ================== STT (Web Speech API, no models) ==================
+/* =========================================================================
+   // ================== STT (Web Speech API, no models) ==================
+   ========================================================================= */
+function initSTT(){
+  (function () {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-(function () {
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-  document.addEventListener("DOMContentLoaded", () => {
     const form  = document.getElementById("chat-form");
     const input = document.getElementById("chat-input");
     if (!form || !input) return;
@@ -967,18 +855,23 @@ console.log("[tts] loaded");
         rec.stop();
       }
     });
-  });
-})();
+  })();
+}
 
-// ---------- Study Mode ----------
-document.addEventListener('DOMContentLoaded', function () {
-  const studyBtn  = document.getElementById('study-toggle');
-  const bar       = document.getElementById('study-bar');
-  const panel     = document.getElementById('notes-panel');
-  const closeBtn  = document.getElementById('notes-close');
-  const refEl     = document.getElementById('notes-ref');
-  const textEl    = document.getElementById('notes-text');
-  const pointsEl  = document.getElementById('notes-points');
+/* =========================================================================
+   // ---------- Study Mode ----------
+   (Notes panel version)
+   ========================================================================= */
+function initStudyModeNotesPanel(){
+  const studyBtn  = App.el.studyBtn;
+  const bar       = App.el.studyBar;
+  const panel     = App.el.notesPanel;
+  const closeBtn  = App.el.notesClose;
+  const refEl     = App.el.notesRef;
+  const textEl    = App.el.notesText;
+  const pointsEl  = App.el.notesPoints;
+
+  if (!studyBtn || !bar || !panel || !closeBtn || !refEl || !textEl || !pointsEl) return;
 
   const DEMO_VERSES = [
     {
@@ -998,9 +891,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   ];
 
-  function renderChips(suggestions = []) {
+  function renderChips(verses = []) {
     bar.innerHTML = '';
-    suggestions.forEach(v => {
+    verses.forEach(v => {
       const chip = document.createElement('button');
       chip.type = 'button';
       chip.className = 'chip';
@@ -1040,4 +933,16 @@ document.addEventListener('DOMContentLoaded', function () {
       closeNotes();
     }
   });
-});
+
+  // Optional: also show fresh chips after each user send (fake “AI suggestions”)
+  const chatForm  = App.el.chatForm;
+  if (chatForm) {
+    chatForm.addEventListener('submit', () => {
+      if (studyOn) {
+        // For demo: re-render the same chips; later plug in real suggestions
+        renderChips(DEMO_VERSES);
+      }
+    });
+  }
+}
+
