@@ -856,7 +856,7 @@ console.log("[tts] loaded");
   function updateTtsBtn() {
     const btn = document.getElementById("tts-btn");
     if (!btn) return;
-    btn.title = ttsOn ? "Reading: ON" : "Reading: OFF";
+    btn.title = ttsOn ? "Reading: ON" : "Reading: OFF"; 
     btn.classList.toggle("is-on", ttsOn);
   }
 
@@ -911,10 +911,10 @@ console.log("[tts] loaded");
     const input = document.getElementById("chat-input");
     if (!form || !input) return;
 
-    // Reuse an existing mic button if present; otherwise create one.
+    // Reuse an existing mic button if present; 
     let micBtn =
-      document.getElementById("stt-mic-btn") ||
-      document.getElementById("stt-btn") || // if you already had this id
+      document.getElementById("stt-mic-btn") || 
+      document.getElementById("stt-btn") || 
       null;
 
     if (!micBtn) {
@@ -922,7 +922,7 @@ console.log("[tts] loaded");
       micBtn = document.createElement("button");
       micBtn.type = "button";
       micBtn.id = "stt-mic-btn";
-      micBtn.className = "icon-btn";
+      micBtn.className = "icon-btn"; 
       micBtn.title = "Speak";
       micBtn.style.marginLeft = "8px";
       micBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
@@ -936,6 +936,17 @@ console.log("[tts] loaded");
       console.warn("[STT] Web Speech API not supported.");
       return;
     }
+
+    let sttOn = false;
+
+    function updateSTtBtn(){
+      const btn = document.getElementById("stt-btn");
+      if (!btn) return;
+      btn.title = sttOn? "Listening: ON" : "Listening: OFF"; 
+      btn.classList.toggle("is-on", sttOn);
+      btn.textContent = sttOn ? "🎤 Stop Listening" : "🎤 Start Listening";
+    } 
+
 
     const rec = new SR();
     rec.lang = "en-US";
