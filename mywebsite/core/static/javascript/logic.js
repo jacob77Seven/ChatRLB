@@ -892,15 +892,17 @@ function initStudyModeNotesPanel(){
   ];
 
   function renderChips(verses = []) {
-    bar.innerHTML = '';
-    verses.forEach(v => {
-      const chip = document.createElement('button');
-      chip.type = 'button';
-      chip.className = 'chip';
-      chip.textContent = v.ref;
-      chip.addEventListener('click', () => openNotes(v));
-      bar.appendChild(chip);
-    });
+    const bar = document.getElementById('study-bar');
+  bar.classList.remove('hidden');      // show slot
+  bar.innerHTML = '';
+  verses.forEach(v => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'chip';
+    chip.textContent = v.ref;
+    chip.addEventListener('click', () => openNotes(v));
+    bar.appendChild(chip);
+  });
   }
 
   function openNotes(verse) {
@@ -913,11 +915,12 @@ function initStudyModeNotesPanel(){
       pointsEl.appendChild(li);
     });
     panel.classList.remove('hidden');
-    document.body.classList.add('with-notes');
+    document.body.classList.add('with-notes');     // <-- enable split layout
+    document.getElementById('notes-panel').classList.remove('hidden');
   }
 
   function closeNotes() {
-    panel.classList.add('hidden');
+    document.getElementById('notes-panel').classList.add('hidden');
     document.body.classList.remove('with-notes');
   }
 
@@ -930,6 +933,7 @@ function initStudyModeNotesPanel(){
       renderChips(DEMO_VERSES);
     } else {
       bar.innerHTML = '';
+      bar.classList.add('hidden'); 
       closeNotes();
     }
   });
