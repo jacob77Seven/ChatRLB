@@ -722,11 +722,6 @@ input[type="range"]#size-input {
     padding-top: 10px;
 }
 
-.history-entry:hover {
-    background-color: var(--mainColor);
-    color: var(--headingColor);
-}
-
 #chat-history {
     flex: 1 1 auto;
     overflow-y: auto;
@@ -746,6 +741,41 @@ input[type="range"]#size-input {
 #chat-history::-webkit-scrollbar-thumb {
     background-color: grey;
     border-radius: 5px;
+}
+
+/* history options menu */
+#edit-history {
+  position: fixed;
+  left: 250px; /* shows up to left of sidebar */
+  border: 1px solid var(--borderColor);
+  background-color: var(--asideColor);
+  width: 100px;
+  top: 100px; /* temporary */
+  display: none;
+}
+
+#edit-history #history-options > button {
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border: 0; /* no button border */
+  background: none;
+}
+
+#edit-history #history-close-popup {
+  display: flex;
+  justify-content: flex-end;
+  border-bottom: 1px solid var(--borderColor);
+}
+
+#edit-history #history-close-popup > div{
+  padding: 0px 8px;
+}
+
+#edit-history #history-options > button:hover,
+#edit-history #history-close-popup > div:hover {
+  background-color: var(--mainColor);
+  color: var(--textColor);
 }
 
 

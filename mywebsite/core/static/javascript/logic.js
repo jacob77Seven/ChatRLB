@@ -667,6 +667,20 @@ function createHistory(keyword, date, index) {
     host.prepend(newHist);
   }
 
+  keywordP.addEventListener('mouseover', function() {
+    if(newHist) {
+      newHist.style.backgroundColor= "var(--mainColor)";
+      newHist.style.color = "var(--headingColor)";
+    }
+  });
+
+  keywordP.addEventListener('mouseout', function() {
+    if(newHist) {
+      newHist.style.backgroundColor = "var(--asideColor)";
+      newHist.style.color = "var(--textColor)";
+    }
+  });
+  
   keywordP.addEventListener("click", function() {
     loadHistory(index);
   });
