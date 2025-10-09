@@ -112,6 +112,11 @@ function initCacheEls(){
   App.el.histPlaceholder= $id("hist-placeholder");
   App.el.chatHistorySec = $id("chat-history");
 
+  App.el.histMenu = $id("edit-history");
+  App.el.histClose = $id("history-close");
+  App.el.renameBtn = $id("history-rename");
+  App.el.deleteBtn = $id("history-delete");
+
   App.el.aboutLink      = $id('about-link');
   App.el.aboutPopup     = $id('aboutPopup');
   App.el.aboutClose     = $id('popup-close');
@@ -652,14 +657,24 @@ function createHistory(keyword, date, index) {
 
   if (histPlaceHolder) histPlaceHolder.style.display = "none";
   const newHist = document.createElement('span');
-  const keywordP = document.createElement('p');
-  keywordP.textContent = `${keyword || "Conversation"}`;
-  keywordP.classList.add('hist-kw');
+  const keywordT = document.createElement('p');
+  keywordT.textContent = `${keyword || "Conversation"}`;
+  keywordT.classList.add('hist-kw');
+  const histLeftSpan = document.createElement('span');
+  histLeftSpan.classList.add('hist-left-span');
   const keywordD = document.createElement('p');
   keywordD.textContent = `${date || ""}`;
+  const histIconCircle = document.createElement('div');
+  const histIcon = document.createElement('i');
+  histIcon.classList.add('fa-solid');
+  histIcon.classList.add('fa-ellipsis-vertical');
+  histIconCircle.classList.add('hist-icon-circle');
+  histIconCircle.appendChild(histIcon);
+  histLeftSpan.appendChild(keywordD);
+  histLeftSpan.appendChild(histIconCircle);
   newHist.classList.add('history-entry');
-  newHist.appendChild(keywordP);
-  newHist.appendChild(keywordD);
+  newHist.appendChild(keywordT);
+  newHist.appendChild(histLeftSpan);
 
   if (histPlaceHolder) {
     histPlaceHolder.insertAdjacentElement("afterend", newHist); // add most recent to top
@@ -667,24 +682,98 @@ function createHistory(keyword, date, index) {
     host.prepend(newHist);
   }
 
-  keywordP.addEventListener('mouseover', function() {
-    if(newHist) {
-      newHist.style.backgroundColor= "var(--mainColor)";
-      newHist.style.color = "var(--headingColor)";
-    }
+  newHist.addEventListener('mouseover', () => {
+    newHist.style.backgroundColor= "var(--mainColor)";
+    newHist.style.color = "var(--headingColor)";
   });
 
-  keywordP.addEventListener('mouseout', function() {
-    if(newHist) {
-      newHist.style.backgroundColor = "var(--asideColor)";
-      newHist.style.color = "var(--textColor)";
-    }
+  newHist.addEventListener('mouseout', () => {
+    newHist.style.backgroundColor = "var(--asideColor)";
+    newHist.style.color = "var(--textColor)";
   });
   
-  keywordP.addEventListener("click", function() {
-    loadHistory(index);
+  newHist.addEventListener("click", e => {
+    if(notOpeningHistoryMenu(e)) loadHistory(index);
+  });
+
+  histIconCircle.addEventListener("click", e => {
+    const targetEntry = e.target.closest('.history-entry');
+    const targetKeyword = targetEntry.querySelector('.hist-kw');
+    openHistMenu(e.clientY, index, targetKeyword);
   });
 }
+
+function openHistMenu(y, index, keyword) {
+  const histMenu = App.el.histMenu;
+  const histClose = App.el.histClose;
+  const renameBtn = App.el.renameBtn;
+  const deleteBtn = App.el.deleteBtn;
+  histMenu.style.display = 'block';
+  histMenu.style.top = `${y-15}px`;
+  console.log(index);
+
+  histClose.addEventListener("click", () => {
+    closeHist();
+  });
+
+  document.addEventListener("click", e => {
+    if (notOpeningHistoryMenu(e) && (e.target != histMenu && e.target != renameBtn && e.target != deleteBtn )) {
+      closeHist();
+    }
+  })
+
+  renameBtn.addEventListener("click", () => {
+    renameHist(index, keyword);
+  });
+
+  deleteBtn.addEventListener("click", () => {
+    deleteHist(index);
+  });
+};
+
+function notOpeningHistoryMenu(e) {
+  return (e.target.className != 'fa-solid fa-ellipsis-vertical' && e.target.className != 'hist-icon-circle');
+};
+
+function closeHist() {
+  const histMenu = App.el.histMenu;
+  histMenu.style.display = 'none';
+};
+
+function renameHist(index, keyword) {
+  keyword.contentEditable = 'true';
+  keyword.focus();
+  // create range and select entire content
+  const keywordRangeEl = document.createRange();
+  keywordRangeEl.selectNodeContents(keyword);
+  // get selection object and apply new range
+  const keywordSelection = window.getSelection();
+  keywordSelection.removeAllRanges();
+  keywordSelection.addRange(keywordRangeEl);
+
+  keyword.addEventListener("keydown", e => {
+    if (e.key === "Enter") keyword.blur()
+  });
+
+  keyword.addEventListener("blur", () => {
+    keyword.contentEditable = 'false';
+    chatHistory[index].keyword = keyword.textContent;
+    saveChatHistory();
+    closeHist();
+  });
+};
+
+function deleteHist(index) {
+  const historySection = App.el.chatHistorySec;
+  chatHistory.splice(index, 1); // removes the specified index
+  console.log("index " + index + " deleted");
+  saveChatHistory();
+  historySection.innerHTML = '';
+  initHistoryBoot();
+  const histHr = document.createElement("hr"); // for line at top
+  historySection.insertAdjacentElement('afterbegin', histHr);
+  closeHist();
+};
 
 // loading chat history as soon as the browser loads
 function initHistoryBoot(){
