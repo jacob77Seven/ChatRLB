@@ -795,6 +795,16 @@ input[type="range"]#size-input {
   color: var(--textColor);
 }
 
+/* markdown for chat messages */
+.chat-message.bot ul {
+    margin-left: 2rem; /* puts bullet points in chat message bubble */
+    margin-top: -1rem; /* puts ul closer to paragraph above it */
+}
+
+.chat-messages.bot ul li ul {
+    margin-bottom: -2rem; /* removes space underneath ul inside li element if it exists */
+}
+
 
 /* --- Study Mode chips --- */
 .study-bar {
