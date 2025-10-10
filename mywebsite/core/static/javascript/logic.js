@@ -169,7 +169,9 @@ function initSidebar(){
 let settingsClicked = false; // track settings popup state
 function initSettingsButton(){
   const settingsBtn = App.el.settingsBtn, settingsPopup = App.el.settingsPopup;
-  if (!settingsBtn || !settingsPopup) return;
+  const appearancePopup = App.el.appearancePopup;
+  const fontSizePopup = App.el.fontSizePopup;
+  if (!settingsBtn || !settingsPopup || !appearancePopup || !fontSizePopup) return;
 
   settingsBtn.addEventListener('mouseover', () => {
     settingsBtn.style.backgroundColor = "var(--mainColor)";
@@ -184,12 +186,25 @@ function initSettingsButton(){
     if (settingsClicked) {
       settingsBtn.style.backgroundColor = "var(--mainColor)";
       settingsPopup.style.opacity = "1";
+      document.addEventListener("click", shouldCloseSettings);
     } else {
-      settingsBtn.style.backgroundColor = "var(--buttonColor)";
-      settingsPopup.style.opacity = "0";
+      closeSettings();
     }
   });
-}
+
+  function shouldCloseSettings(e) {
+    if (!settingsPopup.contains(e.target) && !settingsBtn.contains(e.target) && !appearancePopup.contains(e.target) && !fontSizePopup.contains(e.target)){
+      settingsClicked = false;
+      closeSettings();
+    }
+  };
+
+  function closeSettings() {
+    settingsBtn.style.backgroundColor = "var(--buttonColor)";
+    settingsPopup.style.opacity = "0";
+    document.removeEventListener("click", shouldCloseSettings);
+  };
+};
 
 /* =========================================================================
    // appearance button under settings
@@ -223,11 +238,10 @@ function initAppearanceButton(){
 
     if (appearanceClicked) {
       appearanceBtn.style.backgroundColor = "var(--mainColor)";
-      // add menu display here
-      body.style.pointerEvents = "none"; // you cant click on anything else until you click the x button
       appearancePopup.style.opacity = 1; // make appearance pop-up show up
       appearancePopup.style.pointerEvents = "all"; // you can click on the buttons again
       document.addEventListener("keydown", handleClick);
+      document.addEventListener("click", shouldCloseAppearance); // close automatically if you click out of popup
     } else {
       appearanceBtn.style.backgroundColor = "var(--buttonColor)";
       appearanceClicked = !appearanceClicked; // this sets the appearanceClicked tracking variable to be right again
@@ -238,18 +252,23 @@ function initAppearanceButton(){
     }
   }
 
+  function shouldCloseAppearance(e) {
+    if(!appearancePopup || !appearanceBtn) return;
+    if(!appearancePopup.contains(e.target) && !appearanceBtn.contains(e.target)) closeAppearance();
+  };
+
   closeAppearanceBtn.addEventListener('click', closeAppearance);
   function closeAppearance() {
     const settingsPopup = App.el.settingsPopup;
     appearancePopup.style.opacity = 0; // make popup close
-    body.style.pointerEvents="all"; // now you can click on everything again
     appearancePopup.style.pointerEvents = "none";
     appearanceClicked = !(appearanceClicked); // unclick appearance button
     appearanceBtn.style.backgroundColor = "var(--buttonColor)"; 
     App.el.settingsBtn.style.backgroundColor = "var(--buttonColor)";
     if (settingsPopup) settingsPopup.style.opacity = "0";
-    settingsClicked = !settingsClicked;
+    settingsClicked = false;
     document.removeEventListener("keydown", handleClick);
+    document.removeEventListener("click", shouldCloseAppearance);
   }
 }
 
@@ -378,11 +397,10 @@ function initFontSizeButton(){
 
     if (sizeClicked) {
       sizeBtn.style.backgroundColor = "var(--mainColor)";
-      // add menu display here
-      body.style.pointerEvents = "none"; // you cant click on anything else until you click the x button
       fontSizePopup.style.opacity = 1; // make pop-up show up
       fontSizePopup.style.pointerEvents = "all"; // you can click on the buttons again
       document.addEventListener("keydown", handleFontClick);
+      document.addEventListener("click", shouldCloseFontSize); // close automatically if you click outside popup
     } else {
       sizeBtn.style.backgroundColor = "var(--buttonColor)";
       sizeClicked = !sizeClicked; // fixes the sizeClicked variable to show correctly
@@ -391,18 +409,23 @@ function initFontSizeButton(){
     }
   }
 
+  function shouldCloseFontSize(e) {
+    if (!fontSizePopup || !sizeBtn) return;
+    if (!fontSizePopup.contains(e.target) && !sizeBtn.contains(e.target)) closeSize();
+  };
+
   closeSizeBtn.addEventListener("click", closeSize);
   function closeSize() {
     const settingsPopup = App.el.settingsPopup;
     fontSizePopup.style.opacity = 0; // make popup close
-    body.style.pointerEvents="all"; // now you can click on everything again
     fontSizePopup.style.pointerEvents = "none";
     sizeClicked = !(sizeClicked); // unclick size button
     sizeBtn.style.backgroundColor = "var(--buttonColor)"; 
     App.el.settingsBtn.style.backgroundColor = "var(--buttonColor)";
     if (settingsPopup) settingsPopup.style.opacity = "0";
-    settingsClicked = !settingsClicked;
+    settingsClicked = false;
     document.removeEventListener("keydown", handleFontClick);
+    document.removeEventListener("click", shouldCloseFontSize);
   }
 }
 
@@ -708,27 +731,19 @@ function openHistMenu(y, index, keyword) {
   const histClose = App.el.histClose;
   const renameBtn = App.el.renameBtn;
   const deleteBtn = App.el.deleteBtn;
+  if (!histMenu || !histClose || !renameBtn || !deleteBtn) return;
   histMenu.style.display = 'block';
   histMenu.style.top = `${y-15}px`;
-  console.log(index);
 
-  histClose.addEventListener("click", () => {
-    closeHist();
-  });
+  histClose.addEventListener("click", () => closeHist());
 
   document.addEventListener("click", e => {
-    if (notOpeningHistoryMenu(e) && (e.target != histMenu && e.target != renameBtn && e.target != deleteBtn )) {
-      closeHist();
-    }
-  })
-
-  renameBtn.addEventListener("click", () => {
-    renameHist(index, keyword);
+    if (notOpeningHistoryMenu(e) && !histMenu.contains(e.target)) closeHist();
   });
 
-  deleteBtn.addEventListener("click", () => {
-    deleteHist(index);
-  });
+  renameBtn.onclick = () => renameHist(index, keyword);
+
+  deleteBtn.onclick = () => deleteHist(index);
 };
 
 function notOpeningHistoryMenu(e) {
@@ -737,7 +752,7 @@ function notOpeningHistoryMenu(e) {
 
 function closeHist() {
   const histMenu = App.el.histMenu;
-  histMenu.style.display = 'none';
+  if (histMenu) histMenu.style.display = 'none';
 };
 
 function renameHist(index, keyword) {
@@ -765,13 +780,35 @@ function renameHist(index, keyword) {
 
 function deleteHist(index) {
   const historySection = App.el.chatHistorySec;
+  const chatContainer = App.el.messagesEl;
+  const welcomeText = App.el.welcomeEl;
+  if (!historySection || !chatContainer) return;
   chatHistory.splice(index, 1); // removes the specified index
-  console.log("index " + index + " deleted");
   saveChatHistory();
+
+  // clear required sections before reloading history
   historySection.innerHTML = '';
+  chatContainer.innerHTML = '';
   initHistoryBoot();
+
+  // reset global variable so that history will work if user tries to enter question w/o clicking new chat btn
+  App.state.hasChattedOnce = false;
+
   const histHr = document.createElement("hr"); // for line at top
+  if (chatHistory.length === 0) {
+    const histPlaceHolder = document.createElement('p');
+    histPlaceHolder.textContent = "Start a new chat to begin...";
+    histPlaceHolder.id = "hist-placeholder";
+    historySection.insertAdjacentElement('afterbegin', histPlaceHolder);
+  }
   historySection.insertAdjacentElement('afterbegin', histHr);
+
+  // rerun welcome animation
+  if (welcomeText){ 
+    welcomeText.textContent = ''; // clear so it doesn't print same thing twice
+    welcomeText.style.display = "block";
+  }
+  initWelcomeTyping();
   closeHist();
 };
 
