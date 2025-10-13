@@ -148,7 +148,7 @@ function initSidebar(){
     toggleBtn.style.left = open ? "200px" : "10px";
     toggleBtn.classList.toggle("fa-window-maximize", open);
     toggleBtn.classList.toggle("fa-bars", !open);
-    if (main) main.style.marginLeft = open ? "260px" : "0px";
+    if (main) main.style.marginLeft = open ? "260px" : "50px"; // adjusted left to 50px to not hide settings btn when sidebar closed
   }
 
   toggleBtn.addEventListener('click', () => apply(!App.state.isSidebarOpen));

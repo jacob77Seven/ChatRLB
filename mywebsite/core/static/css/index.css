@@ -44,7 +44,7 @@
     --box-height: 100vh;
 }
 body{
-    background-color: var(--bodyBGColor);
+    background-color: var(--interfaceColor); /* this technically shows when the sidebar is minimized */
     color: var(--textColor);
     height: 100%;
     overflow: hidden;
@@ -879,8 +879,8 @@ body.with-notes main #inner { margin-right: 42%; } /* match panel width below */
   margin: 10px 0;
 }
 .study-bar .chip {
-  background: #eee;
-  border: 1px solid #ccc;
+  background: var(--buttonColor);
+  border: 1px solid var(--borderColor);
   border-radius: 15px;
   padding: 5px 12px;
   cursor: pointer;
@@ -900,8 +900,8 @@ body.with-notes main #inner { margin-right: 42%; } /* match panel width below */
   bottom: 0;
   width: 40%;                    /* same as margin-right value below */
   min-width: 380px;
-  background: #ffffff;
-  color: #000;
+  background: var(--interfaceColor);
+  color: var(--textColor);
   border-left: 4px solid rgba(0, 0, 0, 0.2);
   padding: 24px 28px;
   overflow-y: auto;
@@ -1027,7 +1027,7 @@ body.with-notes .notes-panel:not(.hidden) {
   position: absolute; right: 12px; top: 8px;
   width: 32px; height: 32px; border-radius: 8px;
   border: 1px solid var(--borderColor);
-  background: var(--buttonColor); color: #000; cursor: pointer;
+  background: var(--buttonColor); color: var(--headingColor); cursor: pointer;
 }
 #notes-close:hover { background: var(--mainColor); color: var(--headingColor); }
 
@@ -1183,8 +1183,8 @@ body.with-notes .notes-panel {
   top: auto !important; right: auto !important; bottom: auto !important; left: auto !important;
   box-shadow: none !important;
   border-left: 4px solid rgba(0,0,0,0.2);
-  background: #fff;
-  color: #000;
+  background: var(--interfaceColor);
+  color: var(--textColor);
 }
 
 .notes-panel.hidden { display: none !important; }
