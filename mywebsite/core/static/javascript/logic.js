@@ -710,12 +710,16 @@ function addHistoryMessage(sender, text, container) {
 /* =========================================================================
    // ============ TTS: Assistant-only reader ============
    ========================================================================= */
-function initTTS(){
+function initTTS() {
   console.log("[tts] loaded");
   const synth = window.speechSynthesis || null;
-  if (!synth) { console.warn("[tts] no window.speechSynthesis available"); return; }
+  if (!synth) {
+    console.warn("[tts] no window.speechSynthesis available");
+    return;
+  }
 
   let ttsOn = false;
+
   function updateTtsBtn() {
     const btn = document.getElementById("tts-btn");
     if (!btn) return;
@@ -726,7 +730,6 @@ function initTTS(){
   function ensureTtsBtn() {
     let btn = document.getElementById("tts-btn");
     if (!btn) {
-      // attach to your chat form area
       const toolbar = document.getElementById("chat-form") || document.body;
       btn = document.createElement("button");
       btn.type = "button";
@@ -736,33 +739,71 @@ function initTTS(){
       btn.innerHTML = '<i class="fa fa-volume-up"></i>';
       toolbar.appendChild(btn);
     }
+
     btn.addEventListener("click", () => {
       ttsOn = !ttsOn;
-      try { if (!ttsOn && speechSynthesis.speaking) speechSynthesis.cancel(); } catch(e){}
+      try {
+        if (!ttsOn && synth.speaking) synth.cancel();
+      } catch (e) {}
       updateTtsBtn();
     });
+
     updateTtsBtn();
+  }
+
+  function cleanText(text) {
+  // Remove HTML tags
+  const tempDiv = document.createElement("div");
+  tempDiv.innerHTML = text;
+  const stripped = tempDiv.textContent || tempDiv.innerText || "";
+
+  // Optional: remove extra / weird characters
+  return stripped.replace(/\/[a-z]+/gi, "");
+  }
+
+
+  function getPreferredVoice() {
+    const voices = synth.getVoices();
+    // Choose a clear, human-like voice
+    return (
+      voices.find(v =>
+        v.name.includes("Google US English") || v.name.includes("Microsoft")
+      ) 
+    );
   }
 
   function speak(text) {
     if (!ttsOn || !text) return;
-    try {
-      if (synth.speaking) synth.cancel();
-      const uttr = new SpeechSynthesisUtterance(text);
-      synth.speak(uttr);
+      try {
+        if (synth.speaking) synth.cancel();
+
+          const uttr = new SpeechSynthesisUtterance(cleanText(text));
+          uttr.voice = getPreferredVoice();
+          uttr.rate = 1.4;
+          uttr.pitch = 1.15;
+          uttr.volume = 1;
+
+          synth.speak(uttr);
     } catch (e) {
-      console.warn("[tts] speak error", e);
-    }
+        console.warn("[tts] speak error", e);
+  }
+}
+
+
+  // Make sure voices are loaded (some browsers require this)
+  if (speechSynthesis.onvoiceschanged !== undefined) {
+    speechSynthesis.onvoiceschanged = () => getPreferredVoice();
   }
 
-  // Listen for a custom event fired when a bot message is appended (see patch in appendMessage below)
-  document.addEventListener("assistant-appended", (ev) => {
-    const text = (ev.detail && ev.detail.text) ? String(ev.detail.text).trim() : "";
+  // Listen for assistant messages
+  document.addEventListener("assistant-appended", ev => {
+    const text = ev.detail?.text?.trim() || "";
     if (text) speak(text);
   });
 
   ensureTtsBtn();
 }
+
 
 /* =========================================================================
    // ================== STT (Web Speech API, no models) ==================
