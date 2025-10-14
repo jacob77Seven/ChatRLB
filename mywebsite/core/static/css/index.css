@@ -44,7 +44,7 @@
     --box-height: 100vh;
 }
 body{
-    background-color: var(--bodyBGColor);
+    background-color: var(--interfaceColor); /* this technically shows when the sidebar is minimized */
     color: var(--textColor);
     height: 100%;
     overflow: hidden;
@@ -722,9 +722,20 @@ input[type="range"]#size-input {
     padding-top: 10px;
 }
 
-.history-entry:hover {
-    background-color: var(--mainColor);
-    color: var(--headingColor);
+.hist-left-span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 70px;
+}
+
+.hist-icon-circle {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 #chat-history {
@@ -746,4 +757,452 @@ input[type="range"]#size-input {
 #chat-history::-webkit-scrollbar-thumb {
     background-color: grey;
     border-radius: 5px;
+}
+
+/* history options menu */
+#edit-history {
+  position: fixed;
+  left: 250px; /* shows up to left of sidebar */
+  border: 1px solid var(--borderColor);
+  background-color: var(--asideColor);
+  width: 100px;
+  top: 100px; /* temporary */
+  display: none;
+}
+
+#edit-history #history-options > button {
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border: 0; /* no button border */
+  background: none;
+  color: var(--textColor);
+}
+
+#edit-history #history-close-popup {
+  display: flex;
+  justify-content: flex-end;
+  border-bottom: 1px solid var(--borderColor);
+}
+
+#edit-history #history-close-popup > div{
+  padding: 0px 8px;
+}
+
+#edit-history #history-options > button:hover,
+#edit-history #history-close-popup > div:hover {
+  background-color: var(--mainColor);
+  color: var(--textColor);
+}
+
+/* markdown for chat messages */
+.chat-message.bot ul {
+    margin-left: 2rem; /* puts bullet points in chat message bubble */
+    margin-top: -1rem; /* puts ul closer to paragraph above it */
+}
+
+.chat-messages.bot ul li ul {
+    margin-bottom: -2rem; /* removes space underneath ul inside li element if it exists */
+}
+
+
+/* --- Study Mode chips --- */
+.study-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0 8px;
+}
+.chip {
+  background: var(--buttonColor);
+  border: 1px solid var(--borderColor);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 13px;
+  color: var(--headingColor);
+  cursor: pointer;
+}
+.chip:hover { background: var(--mainColor); color: var(--headingColor); }
+
+/* --- Split-screen layout: only shift chat when notes are open --- */
+body.with-notes main #inner { margin-right: 42%; } /* match panel width below */
+
+.notes-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;  /* center "Notes" like the mock */
+  position: relative;
+  margin-bottom: 16px;
+}
+.notes-header h2 {
+  font-size: 56px;
+  line-height: 1;
+  margin: 0;
+  font-weight: 700;
+}
+.notes-close {
+  position: absolute;
+  right: 12px;
+  top: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--borderColor);
+  background: var(--buttonColor);
+  color: #000;
+  cursor: pointer;
+}
+.notes-close:hover { background: var(--mainColor); color: var(--headingColor); }
+
+.notes-ref    { margin: 8px 0 16px; font-size: 20px; font-weight: 600; color: #333; }
+.notes-text   { margin: 6px 0 10px; line-height: 1.55; color: #111; }
+.notes-points { padding-left: 18px; display: grid; gap: 6px; color: #111; }
+
+/* --- Responsive safeguards --- */
+@media (max-width: 1024px) {
+  .notes-panel { width: 40%; min-width: 0; }
+  body.with-notes main #inner { margin-right: 42%; }
+}
+@media (max-width: 900px) {
+  body.with-notes main #inner { margin-right: 0; }
+  .notes-panel {
+    left: 0; right: 0; width: auto;
+    border-left: none;
+    border-top: 3px solid rgba(0,0,0,0.2);
+  }
+}
+
+/* Study bar chips */
+.study-bar {
+  display: flex;
+  gap: 8px;
+  margin: 10px 0;
+}
+.study-bar .chip {
+  background: var(--buttonColor);
+  border: 1px solid var(--borderColor);
+  border-radius: 15px;
+  padding: 5px 12px;
+  cursor: pointer;
+}
+.study-bar .chip:hover {
+  background: var(--mainColor);
+  color: #fff;
+}
+
+/* Notes panel */
+/* --- Notes Panel matches chat height --- */
+/* --- Notes Panel (below header, same height as chat) --- */
+.notes-panel {
+  position: absolute;
+  top: 0;                        /* Aligns with the top of the chat area, not header */
+  right: 0;
+  bottom: 0;
+  width: 40%;                    /* same as margin-right value below */
+  min-width: 380px;
+  background: var(--interfaceColor);
+  color: var(--textColor);
+  border-left: 4px solid rgba(0, 0, 0, 0.2);
+  padding: 24px 28px;
+  overflow-y: auto;
+  box-shadow: none;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Hide until a verse is clicked */
+.notes-panel.hidden {
+  display: none;
+}
+
+/* --- Split layout: chat and notes share the main area --- */
+body.with-notes main {
+  display: flex;
+  position: relative;
+  height: calc(100vh - 120px);   /* Match area under header */
+  overflow: hidden;
+}
+
+body.with-notes main #inner {
+  flex: 1;                       /* Chat area fills remaining width */
+  margin-right: 0;
+  overflow-y: auto;
+}
+
+/* --- Keep text box visible when notes are open --- */
+.searchBox {
+  position: relative;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 5;
+  background: var(--tanColor);
+}
+
+/* Notes header */
+.notes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+#notes-close {
+  border: none;
+  background: #ddd;
+  border-radius: 50%;
+  padding: 4px 10px;
+  font-size: 18px;
+  cursor: pointer;
+}
+/* One width variable for the notes column */
+:root { --notesW: 40%; }
+
+/* Keep main as the layout box below your header */
+main {
+  position: relative;
+  height: calc(100vh - var(--headerH, 120px));
+  overflow: hidden;
+}
+
+/* Study chips row should not cause jumps */
+#study-bar.study-bar { 
+  min-height: 40px;             /* reserve space */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+#study-bar.hidden { visibility: hidden; } /* keep height, hide contents */
+
+/* When notes are open, make main a split layout */
+body.with-notes main {
+  display: flex;
+}
+
+/* Chat column becomes the left pane */
+body.with-notes main #inner {
+  flex: 1 1 calc(100% - var(--notesW));  /* take remaining width */
+  max-width: none;
+  margin-right: 0;                        /* margin no longer needed */
+  overflow: hidden;                       /* keeps messages clipped inside */
+  display: flex;
+  flex-direction: column;                 /* so messages grow and input stays at bottom */
+}
+
+/* Messages grow to fill; input stays at bottom */
+body.with-notes #chat-messages {
+  flex: 1 1 auto;
+  overflow-y: auto;
+}
+body.with-notes .searchBox {
+  position: sticky;                       /* always visible */
+  bottom: 0;
+  z-index: 5;
+  background: var(--formColor, #fff);     /* solid background so it never “shows through” */
+}
+
+/* Notes panel = right pane */
+.notes-panel {
+  display: none;                          /* hidden by default */
+  width: var(--notesW);
+  min-width: 380px;
+  background: #fff;
+  color: #000;
+  border-left: 4px solid rgba(0,0,0,0.2);
+  padding: 24px 28px;
+  overflow-y: auto;
+  box-shadow: none;
+  z-index: 10;
+}
+
+/* When open, show panel next to chat (no overlap) */
+body.with-notes .notes-panel:not(.hidden) {
+  display: block;
+}
+
+/* Close button positioning */
+.notes-header { position: relative; }
+#notes-close {
+  position: absolute; right: 12px; top: 8px;
+  width: 32px; height: 32px; border-radius: 8px;
+  border: 1px solid var(--borderColor);
+  background: var(--buttonColor); color: var(--headingColor); cursor: pointer;
+}
+#notes-close:hover { background: var(--mainColor); color: var(--headingColor); }
+
+/* Make sure the sidebar toggle is always clickable */
+#toggle-sidebar { z-index: 9999; }
+
+/* Responsive: overlay on small screens */
+@media (max-width: 900px) {
+  :root { --notesW: 100%; }
+  body.with-notes main { display: block; }   /* no split */
+  body.with-notes main #inner { margin-right: 0; }
+  .notes-panel {
+    position: fixed; left: 0; right: 0; bottom: 0;
+    top: auto; height: 60vh; width: auto;
+    border-left: none; border-top: 3px solid rgba(0,0,0,0.2);
+    z-index: 1500;
+  }
+}
+/* ==== True split layout overrides (wins over older "fixed" styles) ==== */
+
+/* One knob for the notes width */
+:root { --notesW: 40%; }
+
+/* Make main the split container when notes are open */
+body.with-notes main {
+  display: flex;
+  min-height: calc(100vh - var(--headerH, 120px));
+  height: calc(100vh - var(--headerH, 120px));
+  overflow: hidden;
+}
+
+/* Chat column (left) */
+body.with-notes main #inner {
+  flex: 1 1 auto;
+  max-width: none;
+  margin-right: 0 !important;        /* neutralize any old margin-right hacks */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Messages grow; input bar sticks to bottom and stays visible */
+body.with-notes #chat-messages {
+  flex: 1 1 auto;
+  overflow-y: auto;
+}
+body.with-notes .searchBox {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 5;
+  background: var(--formColor, #fff);
+}
+
+/* Notes panel (right) — **not** fixed; it is a flex item */
+body.with-notes .notes-panel {
+  display: block !important;
+  position: relative !important;      /* kill old position:fixed */
+  top: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+  transform: none !important;         /* kill any slide-in transforms */
+  box-shadow: none !important;
+
+  flex: 0 0 var(--notesW) !important; /* real split width */
+  width: auto !important;             /* ignore old fixed widths */
+  min-width: 380px;
+  height: auto;
+  overflow-y: auto;
+  border-left: 4px solid rgba(0,0,0,0.2);
+  background: #fff;
+  color: #000;
+  z-index: 10;
+}
+
+/* When hidden, just don't render it */
+.notes-panel.hidden { display: none !important; }
+
+/* Chips row: reserve a thin slot so the box doesn't "jump" */
+#study-bar.study-bar { 
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+#study-bar.hidden { visibility: hidden; } /* keeps height without content */
+
+/* Keep the sidebar toggle usable above everything */
+#toggle-sidebar { z-index: 9999; }
+
+/* Mobile: overlay the notes instead of splitting */
+@media (max-width: 900px) {
+  :root { --notesW: 100%; }
+  body.with-notes main { display: block; }
+  body.with-notes main #inner { margin-right: 0 !important; }
+  body.with-notes .notes-panel {
+    position: fixed !important;
+    left: 0; right: 0; bottom: 0;
+    top: auto;
+    height: 60vh;
+    width: auto !important;
+    border-left: none;
+    border-top: 3px solid rgba(0,0,0,0.2);
+    z-index: 1500;
+  }
+}
+/* Force a true side-by-side split when notes are open */
+body.with-notes main {
+  display: flex !important;
+  flex-direction: row !important;   /* <— this is the key line you’re missing */
+  min-height: calc(100vh - var(--headerH, 120px));
+  height: calc(100vh - var(--headerH, 120px));
+  overflow: hidden;
+}
+
+/* Chat column (left) */
+body.with-notes main #inner {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-right: 0 !important;
+  max-width: none;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Messages scroll; input stays visible at bottom */
+body.with-notes #chat-messages {
+  flex: 1 1 auto;
+  overflow-y: auto;
+}
+body.with-notes .searchBox {
+  position: sticky;
+  bottom: 0;
+  left: 0; right: 0;
+  width: 100%;
+  z-index: 5;
+}
+
+/* Notes panel (right) participates in the split (not fixed) */
+:root { --notesW: 40%; }  /* tweak to taste */
+body.with-notes .notes-panel {
+  position: relative !important;
+  flex: 0 0 var(--notesW) !important;
+  width: auto !important;
+  height: auto;
+  overflow-y: auto;
+  transform: none !important;
+  top: auto !important; right: auto !important; bottom: auto !important; left: auto !important;
+  box-shadow: none !important;
+  border-left: 4px solid rgba(0,0,0,0.2);
+  background: var(--interfaceColor);
+  color: var(--textColor);
+}
+
+.notes-panel.hidden { display: none !important; }
+
+/* Keep a steady row for chips so the input doesn’t “jump” */
+#study-bar.study-bar { min-height: 40px; display: flex; align-items: center; gap: 8px; padding: 4px 0; }
+#study-bar.hidden { visibility: hidden; }
+
+/* Mobile: overlay notes instead of splitting */
+@media (max-width: 900px) {
+  :root { --notesW: 100%; }
+  body.with-notes main { display: block !important; }
+  body.with-notes .notes-panel {
+    position: fixed !important;
+    left: 0; right: 0; bottom: 0; top: auto;
+    height: 60vh;
+    width: auto !important;
+    border-left: none; border-top: 3px solid rgba(0,0,0,0.2);
+    z-index: 1500;
+  }
 }
