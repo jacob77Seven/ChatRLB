@@ -112,6 +112,11 @@ function initCacheEls(){
   App.el.histPlaceholder= $id("hist-placeholder");
   App.el.chatHistorySec = $id("chat-history");
 
+  App.el.histMenu = $id("edit-history");
+  App.el.histClose = $id("history-close");
+  App.el.renameBtn = $id("history-rename");
+  App.el.deleteBtn = $id("history-delete");
+
   App.el.aboutLink      = $id('about-link');
   App.el.aboutPopup     = $id('aboutPopup');
   App.el.aboutClose     = $id('popup-close');
@@ -143,7 +148,7 @@ function initSidebar(){
     toggleBtn.style.left = open ? "200px" : "10px";
     toggleBtn.classList.toggle("fa-window-maximize", open);
     toggleBtn.classList.toggle("fa-bars", !open);
-    if (main) main.style.marginLeft = open ? "260px" : "0px";
+    if (main) main.style.marginLeft = open ? "260px" : "50px"; // adjusted left to 50px to not hide settings btn when sidebar closed
   }
 
   toggleBtn.addEventListener('click', () => apply(!App.state.isSidebarOpen));
@@ -164,7 +169,9 @@ function initSidebar(){
 let settingsClicked = false; // track settings popup state
 function initSettingsButton(){
   const settingsBtn = App.el.settingsBtn, settingsPopup = App.el.settingsPopup;
-  if (!settingsBtn || !settingsPopup) return;
+  const appearancePopup = App.el.appearancePopup;
+  const fontSizePopup = App.el.fontSizePopup;
+  if (!settingsBtn || !settingsPopup || !appearancePopup || !fontSizePopup) return;
 
   settingsBtn.addEventListener('mouseover', () => {
     settingsBtn.style.backgroundColor = "var(--mainColor)";
@@ -179,12 +186,25 @@ function initSettingsButton(){
     if (settingsClicked) {
       settingsBtn.style.backgroundColor = "var(--mainColor)";
       settingsPopup.style.opacity = "1";
+      document.addEventListener("click", shouldCloseSettings);
     } else {
-      settingsBtn.style.backgroundColor = "var(--buttonColor)";
-      settingsPopup.style.opacity = "0";
+      closeSettings();
     }
   });
-}
+
+  function shouldCloseSettings(e) {
+    if (!settingsPopup.contains(e.target) && !settingsBtn.contains(e.target) && !appearancePopup.contains(e.target) && !fontSizePopup.contains(e.target)){
+      settingsClicked = false;
+      closeSettings();
+    }
+  };
+
+  function closeSettings() {
+    settingsBtn.style.backgroundColor = "var(--buttonColor)";
+    settingsPopup.style.opacity = "0";
+    document.removeEventListener("click", shouldCloseSettings);
+  };
+};
 
 /* =========================================================================
    // appearance button under settings
@@ -218,11 +238,10 @@ function initAppearanceButton(){
 
     if (appearanceClicked) {
       appearanceBtn.style.backgroundColor = "var(--mainColor)";
-      // add menu display here
-      body.style.pointerEvents = "none"; // you cant click on anything else until you click the x button
       appearancePopup.style.opacity = 1; // make appearance pop-up show up
       appearancePopup.style.pointerEvents = "all"; // you can click on the buttons again
       document.addEventListener("keydown", handleClick);
+      document.addEventListener("click", shouldCloseAppearance); // close automatically if you click out of popup
     } else {
       appearanceBtn.style.backgroundColor = "var(--buttonColor)";
       appearanceClicked = !appearanceClicked; // this sets the appearanceClicked tracking variable to be right again
@@ -233,18 +252,23 @@ function initAppearanceButton(){
     }
   }
 
+  function shouldCloseAppearance(e) {
+    if(!appearancePopup || !appearanceBtn) return;
+    if(!appearancePopup.contains(e.target) && !appearanceBtn.contains(e.target)) closeAppearance();
+  };
+
   closeAppearanceBtn.addEventListener('click', closeAppearance);
   function closeAppearance() {
     const settingsPopup = App.el.settingsPopup;
     appearancePopup.style.opacity = 0; // make popup close
-    body.style.pointerEvents="all"; // now you can click on everything again
     appearancePopup.style.pointerEvents = "none";
     appearanceClicked = !(appearanceClicked); // unclick appearance button
     appearanceBtn.style.backgroundColor = "var(--buttonColor)"; 
     App.el.settingsBtn.style.backgroundColor = "var(--buttonColor)";
     if (settingsPopup) settingsPopup.style.opacity = "0";
-    settingsClicked = !settingsClicked;
+    settingsClicked = false;
     document.removeEventListener("keydown", handleClick);
+    document.removeEventListener("click", shouldCloseAppearance);
   }
 }
 
@@ -373,11 +397,10 @@ function initFontSizeButton(){
 
     if (sizeClicked) {
       sizeBtn.style.backgroundColor = "var(--mainColor)";
-      // add menu display here
-      body.style.pointerEvents = "none"; // you cant click on anything else until you click the x button
       fontSizePopup.style.opacity = 1; // make pop-up show up
       fontSizePopup.style.pointerEvents = "all"; // you can click on the buttons again
       document.addEventListener("keydown", handleFontClick);
+      document.addEventListener("click", shouldCloseFontSize); // close automatically if you click outside popup
     } else {
       sizeBtn.style.backgroundColor = "var(--buttonColor)";
       sizeClicked = !sizeClicked; // fixes the sizeClicked variable to show correctly
@@ -386,18 +409,23 @@ function initFontSizeButton(){
     }
   }
 
+  function shouldCloseFontSize(e) {
+    if (!fontSizePopup || !sizeBtn) return;
+    if (!fontSizePopup.contains(e.target) && !sizeBtn.contains(e.target)) closeSize();
+  };
+
   closeSizeBtn.addEventListener("click", closeSize);
   function closeSize() {
     const settingsPopup = App.el.settingsPopup;
     fontSizePopup.style.opacity = 0; // make popup close
-    body.style.pointerEvents="all"; // now you can click on everything again
     fontSizePopup.style.pointerEvents = "none";
     sizeClicked = !(sizeClicked); // unclick size button
     sizeBtn.style.backgroundColor = "var(--buttonColor)"; 
     App.el.settingsBtn.style.backgroundColor = "var(--buttonColor)";
     if (settingsPopup) settingsPopup.style.opacity = "0";
-    settingsClicked = !settingsClicked;
+    settingsClicked = false;
     document.removeEventListener("keydown", handleFontClick);
+    document.removeEventListener("click", shouldCloseFontSize);
   }
 }
 
@@ -652,14 +680,24 @@ function createHistory(keyword, date, index) {
 
   if (histPlaceHolder) histPlaceHolder.style.display = "none";
   const newHist = document.createElement('span');
-  const keywordP = document.createElement('p');
-  keywordP.textContent = `${keyword || "Conversation"}`;
-  keywordP.classList.add('hist-kw');
+  const keywordT = document.createElement('p');
+  keywordT.textContent = `${keyword || "Conversation"}`;
+  keywordT.classList.add('hist-kw');
+  const histLeftSpan = document.createElement('span');
+  histLeftSpan.classList.add('hist-left-span');
   const keywordD = document.createElement('p');
   keywordD.textContent = `${date || ""}`;
+  const histIconCircle = document.createElement('div');
+  const histIcon = document.createElement('i');
+  histIcon.classList.add('fa-solid');
+  histIcon.classList.add('fa-ellipsis-vertical');
+  histIconCircle.classList.add('hist-icon-circle');
+  histIconCircle.appendChild(histIcon);
+  histLeftSpan.appendChild(keywordD);
+  histLeftSpan.appendChild(histIconCircle);
   newHist.classList.add('history-entry');
-  newHist.appendChild(keywordP);
-  newHist.appendChild(keywordD);
+  newHist.appendChild(keywordT);
+  newHist.appendChild(histLeftSpan);
 
   if (histPlaceHolder) {
     histPlaceHolder.insertAdjacentElement("afterend", newHist); // add most recent to top
@@ -667,10 +705,112 @@ function createHistory(keyword, date, index) {
     host.prepend(newHist);
   }
 
-  keywordP.addEventListener("click", function() {
-    loadHistory(index);
+  newHist.addEventListener('mouseover', () => {
+    newHist.style.backgroundColor= "var(--mainColor)";
+    newHist.style.color = "var(--headingColor)";
+  });
+
+  newHist.addEventListener('mouseout', () => {
+    newHist.style.backgroundColor = "var(--asideColor)";
+    newHist.style.color = "var(--textColor)";
+  });
+  
+  newHist.addEventListener("click", e => {
+    if(notOpeningHistoryMenu(e)) loadHistory(index);
+  });
+
+  histIconCircle.addEventListener("click", e => {
+    const targetEntry = e.target.closest('.history-entry');
+    const targetKeyword = targetEntry.querySelector('.hist-kw');
+    openHistMenu(e.clientY, index, targetKeyword);
   });
 }
+
+function openHistMenu(y, index, keyword) {
+  const histMenu = App.el.histMenu;
+  const histClose = App.el.histClose;
+  const renameBtn = App.el.renameBtn;
+  const deleteBtn = App.el.deleteBtn;
+  if (!histMenu || !histClose || !renameBtn || !deleteBtn) return;
+  histMenu.style.display = 'block';
+  histMenu.style.top = `${y-15}px`;
+
+  histClose.addEventListener("click", () => closeHist());
+
+  document.addEventListener("click", e => {
+    if (notOpeningHistoryMenu(e) && !histMenu.contains(e.target)) closeHist();
+  });
+
+  renameBtn.onclick = () => renameHist(index, keyword);
+
+  deleteBtn.onclick = () => deleteHist(index);
+};
+
+function notOpeningHistoryMenu(e) {
+  return (e.target.className != 'fa-solid fa-ellipsis-vertical' && e.target.className != 'hist-icon-circle');
+};
+
+function closeHist() {
+  const histMenu = App.el.histMenu;
+  if (histMenu) histMenu.style.display = 'none';
+};
+
+function renameHist(index, keyword) {
+  keyword.contentEditable = 'true';
+  keyword.focus();
+  // create range and select entire content
+  const keywordRangeEl = document.createRange();
+  keywordRangeEl.selectNodeContents(keyword);
+  // get selection object and apply new range
+  const keywordSelection = window.getSelection();
+  keywordSelection.removeAllRanges();
+  keywordSelection.addRange(keywordRangeEl);
+
+  keyword.addEventListener("keydown", e => {
+    if (e.key === "Enter") keyword.blur()
+  });
+
+  keyword.addEventListener("blur", () => {
+    keyword.contentEditable = 'false';
+    chatHistory[index].keyword = keyword.textContent;
+    saveChatHistory();
+    closeHist();
+  });
+};
+
+function deleteHist(index) {
+  const historySection = App.el.chatHistorySec;
+  const chatContainer = App.el.messagesEl;
+  const welcomeText = App.el.welcomeEl;
+  if (!historySection || !chatContainer) return;
+  chatHistory.splice(index, 1); // removes the specified index
+  saveChatHistory();
+
+  // clear required sections before reloading history
+  historySection.innerHTML = '';
+  chatContainer.innerHTML = '';
+  initHistoryBoot();
+
+  // reset global variable so that history will work if user tries to enter question w/o clicking new chat btn
+  App.state.hasChattedOnce = false;
+
+  const histHr = document.createElement("hr"); // for line at top
+  if (chatHistory.length === 0) {
+    const histPlaceHolder = document.createElement('p');
+    histPlaceHolder.textContent = "Start a new chat to begin...";
+    histPlaceHolder.id = "hist-placeholder";
+    historySection.insertAdjacentElement('afterbegin', histPlaceHolder);
+  }
+  historySection.insertAdjacentElement('afterbegin', histHr);
+
+  // rerun welcome animation
+  if (welcomeText){ 
+    welcomeText.textContent = ''; // clear so it doesn't print same thing twice
+    welcomeText.style.display = "block";
+  }
+  initWelcomeTyping();
+  closeHist();
+};
 
 // loading chat history as soon as the browser loads
 function initHistoryBoot(){
@@ -933,15 +1073,17 @@ function initStudyModeNotesPanel(){
   ];
 
   function renderChips(verses = []) {
-    bar.innerHTML = '';
-    verses.forEach(v => {
-      const chip = document.createElement('button');
-      chip.type = 'button';
-      chip.className = 'chip';
-      chip.textContent = v.ref;
-      chip.addEventListener('click', () => openNotes(v));
-      bar.appendChild(chip);
-    });
+    const bar = document.getElementById('study-bar');
+  bar.classList.remove('hidden');      // show slot
+  bar.innerHTML = '';
+  verses.forEach(v => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'chip';
+    chip.textContent = v.ref;
+    chip.addEventListener('click', () => openNotes(v));
+    bar.appendChild(chip);
+  });
   }
 
   function openNotes(verse) {
@@ -954,11 +1096,12 @@ function initStudyModeNotesPanel(){
       pointsEl.appendChild(li);
     });
     panel.classList.remove('hidden');
-    document.body.classList.add('with-notes');
+    document.body.classList.add('with-notes');     // <-- enable split layout
+    document.getElementById('notes-panel').classList.remove('hidden');
   }
 
   function closeNotes() {
-    panel.classList.add('hidden');
+    document.getElementById('notes-panel').classList.add('hidden');
     document.body.classList.remove('with-notes');
   }
 
@@ -971,6 +1114,7 @@ function initStudyModeNotesPanel(){
       renderChips(DEMO_VERSES);
     } else {
       bar.innerHTML = '';
+      bar.classList.add('hidden'); 
       closeNotes();
     }
   });
