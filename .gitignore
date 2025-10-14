@@ -1,5 +1,26 @@
-# Ignore Python cache and virtual environments
+# Python/Django
 __pycache__/
 *.pyc
+.venv/
 venv/
-.env
+*.sqlite3
+media/
+staticfiles/
+
+# Node
+node_modules/
+
+# IDE
+.vscode/
+.idea/
+
+# Large/model artifacts
+models/
+*.pt
+*.bin
+*.onnx
+*.ckpt
+
+# OS
+.DS_Store
+Thumbs.db
