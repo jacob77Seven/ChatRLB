@@ -13,6 +13,9 @@ function saveChatHistory(){ localStorage.setItem('history', JSON.stringify(chatH
 // keep your global font size var used by addHistoryMessage/appendMessage
 let scaledChatFontSize = 16; 
 
+// global var used by safe chat wiring and createHistory
+let activeSession = 0; // defaults to index 0
+
 // small helpers
 const $id  = (x) => document.getElementById(x);
 const $one = (sel) => document.querySelector(sel);
@@ -148,7 +151,7 @@ function initSidebar(){
     toggleBtn.style.left = open ? "200px" : "10px";
     toggleBtn.classList.toggle("fa-window-maximize", open);
     toggleBtn.classList.toggle("fa-bars", !open);
-    if (main) main.style.marginLeft = open ? "260px" : "50px"; // adjusted left to 50px to not hide settings btn when sidebar closed
+    if (main) main.style.marginLeft = open ? "260px" : "50px"; // adjusted left to 50px to not hide maximize sidebar btn when sidebar closed
   }
 
   toggleBtn.addEventListener('click', () => apply(!App.state.isSidebarOpen));
@@ -557,10 +560,11 @@ function initChatWiring(){
         chatHistory.push(historyObject);
         saveChatHistory();
         const idx = chatHistory.length - 1;
+        activeSession = idx;
         createHistory(chatHistory[idx].keyword, chatHistory[idx].date, idx);
         App.state.hasChattedOnce = true;
       } else {
-        chatHistory[chatHistory.length - 1].messages.push(messageSet);
+        chatHistory[activeSession].messages.push(messageSet);
         saveChatHistory();
       }
     } catch (err) {
@@ -717,6 +721,7 @@ function createHistory(keyword, date, index) {
   
   newHist.addEventListener("click", e => {
     if(notOpeningHistoryMenu(e)) loadHistory(index);
+    activeSession = index;
   });
 
   histIconCircle.addEventListener("click", e => {
