@@ -1,365 +1,484 @@
+// --- Demo: hard-coded verse suggestions ---
+// (kept as reference; live demo data is inside Study Mode section below)
+// /*const DEMO_VERSES = [ ... ] */
 
-let main = document.getElementsByTagName("main")[0];
-let body = document.getElementsByTagName("body")[0];
-const history = JSON.parse(localStorage.getItem('history')) || [];
+// keep globals that your CSS/HTML rely on
+const main  = document.getElementsByTagName("main")[0];
+const body  = document.getElementsByTagName("body")[0];
 
-document.addEventListener("DOMContentLoaded", function() {
-    let aside = document.getElementsByTagName("aside")[0];
-    let toggleBtn = document.getElementById("toggle-sidebar");
+// Avoid clobbering window.history
+const chatHistory = JSON.parse(localStorage.getItem('history')) || [];
+function saveChatHistory(){ localStorage.setItem('history', JSON.stringify(chatHistory)); }
 
-    let isSidebarOpen = true; // Track sidebar state
+// keep your global font size var used by addHistoryMessage/appendMessage
+let scaledChatFontSize = 16; 
 
-    toggleBtn.addEventListener('click', () => {
-        if (isSidebarOpen) {
-            aside.style.left = "-260px";  // Hide sidebar
-            toggleBtn.style.left = "10px";  // Keep button on the left edge
-            toggleBtn.classList.remove("fa-window-maximize");
-            toggleBtn.classList.add("fa-bars"); // Change icon
-            main.style.marginLeft = "0px"; // Adjust main content
-        } else {
-            aside.style.left = "0px"; // Show sidebar
-            toggleBtn.style.left = "200px";  // Move button inside sidebar
-            toggleBtn.classList.remove("fa-bars");
-            toggleBtn.classList.add("fa-window-maximize"); // Change back
-            main.style.marginLeft = "260px"; // Adjust main content
-        }
-        isSidebarOpen = !isSidebarOpen; // Toggle state
-    });
+// global var used by safe chat wiring and createHistory
+let activeSession = 0; // defaults to index 0
 
-    /* can make function look nicer later */
-    function changeMediaQuery(mediaQuery) {
-        if (mediaQuery.matches) {
-            aside.style.left = "-260px";  // Hide sidebar
-            toggleBtn.style.left = "10px";  // Keep button on the left edge
-            toggleBtn.classList.remove("fa-window-maximize");
-            toggleBtn.classList.add("fa-bars"); // Change icon
-            main.style.marginLeft = "0px"; // Adjust main content
-        } else {
-            aside.style.left = "0px"; // Show sidebar
-            toggleBtn.style.left = "200px";  // Move button inside sidebar
-            toggleBtn.classList.remove("fa-bars");
-            toggleBtn.classList.add("fa-window-maximize"); // Change back
-            main.style.marginLeft = "260px"; // Adjust main content
-        }
-        isSidebarOpen = !isSidebarOpen;
-    }
-    let mediaQuery = window.matchMedia("(max-width: 700px"); // create MediaQueryList object
-    changeMediaQuery(mediaQuery); // call listener function at runtime
-    // attach listener function on state changes
-    mediaQuery.addEventListener("change", function() { 
-        changeMediaQuery(mediaQuery);
-    })
+// small helpers
+const $id  = (x) => document.getElementById(x);
+const $one = (sel) => document.querySelector(sel);
 
+// central cache/state (non-invasive)
+const App = {
+  el: {},
+  state: {
+    isSidebarOpen: true,
+    hasChattedOnce: false,
+    ttsOn: false,
+  }
+};
+
+/* =========================================================================
+   DOMContentLoaded – single entry point that calls feature inits
+   ========================================================================= */
+document.addEventListener("DOMContentLoaded", () => {
+  initCacheEls();
+
+  // Sidebar + responsive
+  initSidebar();
+
+  // settings button
+  initSettingsButton();
+
+  // appearance button under settings
+  initAppearanceButton();
+
+  // dark / light / high contrast modes
+  initThemes();
+
+  // font size button under settings
+  initFontSizeButton();
+  initFontScaling(); //Customize text size
+
+  // New Chat button
+  initNewChat();
+
+  // ---- SAFE CHAT WIRING ----
+  initChatWiring();
+
+  // Welcome typing effect
+  initWelcomeTyping();
+
+  //about RLB button
+  initAboutPopup();
+
+  // loading chat history as soon as the browser loads
+  initHistoryBoot();
+
+  // ============ TTS: Assistant-only reader ============
+  initTTS();
+
+  // ================== STT (Web Speech API, no models) ==================
+  initSTT();
+
+  // ---------- Study Mode ----------
+  initStudyModeNotesPanel();
 });
 
-// set main height here
-//let logo = document.getElementsByClassName("logo-container")[0];
-//const logoHeight = logo.offsetHeight;
-//let mainHeight = main.offsetHeight;
-//let newMainHeight = mainHeight - logoHeight;
-//main.style.setProperty('--box-height', newMainHeight + 'px');
+/* =========================================================================
+   Element cache (query once)
+   ========================================================================= */
+function initCacheEls(){
+  App.el.aside          = document.getElementsByTagName("aside")[0];
+  App.el.toggleBtn      = $id("toggle-sidebar");
 
-// settings button
+  App.el.settingsBtn    = $id('settings-btn');
+  App.el.settingsPopup  = document.getElementsByClassName("settings-popup")[0];
+
+  App.el.appearanceBtn  = $id('chat-appearance');
+  App.el.appearancePopup= $id("appearance-popup");
+  App.el.closeAppearance= $id("close-appearance");
+
+  App.el.darkModeBox    = $id("dark-mode");
+  App.el.lightModeBox   = $id("light-mode");
+  App.el.contrastModeBox= $id("high-contrast-mode");
+  App.el.root           = document.querySelector(':root');
+  App.el.logoImg        = document.getElementsByTagName("img")[0];
+  App.el.profileBox     = document.getElementsByClassName("profile-icon")[0];
+  App.el.logoBox        = document.getElementsByClassName("logo-container")[0];
+  App.el.formBox        = $id("chat-form");
+  App.el.formInput      = $id("chat-input");
+
+  App.el.sizeBtn        = $id('font-size');
+  App.el.fontSizePopup  = $id('textsize-popup');
+  App.el.closeSizeBtn   = $id("close-textsize");
+  App.el.range          = $id("size-input");
+
+  App.el.newChatBtn     = $id("new-chat-btn");
+  App.el.messagesEl     = $id("chat-messages");
+  App.el.inputEl        = $id("chat-input");
+  App.el.welcomeEl      = $id("welcome-text");
+  App.el.chatForm       = $id("chat-form");
+
+  App.el.histPlaceholder= $id("hist-placeholder");
+  App.el.chatHistorySec = $id("chat-history");
+
+  App.el.histMenu = $id("edit-history");
+  App.el.histClose = $id("history-close");
+  App.el.renameBtn = $id("history-rename");
+  App.el.deleteBtn = $id("history-delete");
+
+  App.el.aboutLink      = $id('about-link');
+  App.el.aboutPopup     = $id('aboutPopup');
+  App.el.aboutClose     = $id('popup-close');
+
+  // Study mode / notes panel
+  App.el.studyBtn       = $id('study-toggle');
+  App.el.studyBar       = $id('study-bar');
+  App.el.notesPanel     = $id('notes-panel');
+  App.el.notesClose     = $id('notes-close');
+  App.el.notesRef       = $id('notes-ref');
+  App.el.notesText      = $id('notes-text');
+  App.el.notesPoints    = $id('notes-points');
+
+  // TTS / STT buttons (already in HTML)
+  App.el.ttsBtn         = $id("tts-btn");
+  App.el.sttBtn         = $id("stt-mic-btn");
+}
+
+/* =========================================================================
+   Sidebar (with responsive media query)
+   ========================================================================= */
+function initSidebar(){
+  const aside = App.el.aside, toggleBtn = App.el.toggleBtn;
+  if (!aside || !toggleBtn) return;
+
+  function apply(open){
+    App.state.isSidebarOpen = open;
+    aside.style.left = open ? "-0px" : "-260px";
+    toggleBtn.style.left = open ? "200px" : "10px";
+    toggleBtn.classList.toggle("fa-window-maximize", open);
+    toggleBtn.classList.toggle("fa-bars", !open);
+    if (main) main.style.marginLeft = open ? "260px" : "50px"; // adjusted left to 50px to not hide maximize sidebar btn when sidebar closed
+  }
+
+  toggleBtn.addEventListener('click', () => apply(!App.state.isSidebarOpen));
+
+  /* can make function look nicer later */
+  function changeMediaQuery(mediaQuery) {
+    // mobile (<=700): hide; desktop: show
+    apply(!mediaQuery.matches);
+  }
+  let mediaQuery = window.matchMedia("(max-width: 700px)");
+  changeMediaQuery(mediaQuery);
+  mediaQuery.addEventListener("change", function() { changeMediaQuery(mediaQuery); });
+}
+
+/* =========================================================================
+   // settings button
+   ========================================================================= */
 let settingsClicked = false; // track settings popup state
-let settingsBtn = document.getElementById('settings-btn');
+function initSettingsButton(){
+  const settingsBtn = App.el.settingsBtn, settingsPopup = App.el.settingsPopup;
+  const appearancePopup = App.el.appearancePopup;
+  const fontSizePopup = App.el.fontSizePopup;
+  if (!settingsBtn || !settingsPopup || !appearancePopup || !fontSizePopup) return;
 
-settingsBtn.addEventListener('mouseover', () => {
+  settingsBtn.addEventListener('mouseover', () => {
     settingsBtn.style.backgroundColor = "var(--mainColor)";
-    //console.log("settings mouseover")
-});
+  });
 
-settingsBtn.addEventListener('mouseout', () => {
-    if (!settingsClicked) {
-        settingsBtn.style.backgroundColor = "var(--buttonColor)";
-        //console.log("settings mouseout")
-    }
-});
+  settingsBtn.addEventListener('mouseout', () => {
+    if (!settingsClicked) settingsBtn.style.backgroundColor = "var(--buttonColor)";
+  });
 
-settingsBtn.addEventListener('click', function() {
+  settingsBtn.addEventListener('click', function() {
     settingsClicked = !settingsClicked;
-    let settingsPopup = document.getElementsByClassName("settings-popup")[0];
-
     if (settingsClicked) {
-        settingsBtn.style.backgroundColor = "var(--mainColor)";
-        settingsPopup.style.opacity = "1";
+      settingsBtn.style.backgroundColor = "var(--mainColor)";
+      settingsPopup.style.opacity = "1";
+      document.addEventListener("click", shouldCloseSettings);
     } else {
-        settingsBtn.style.backgroundColor = "var(--buttonColor)";
-        settingsPopup.style.opacity = "0";
+      closeSettings();
     }
+  });
 
-});
+  function shouldCloseSettings(e) {
+    if (!settingsPopup.contains(e.target) && !settingsBtn.contains(e.target) && !appearancePopup.contains(e.target) && !fontSizePopup.contains(e.target)){
+      settingsClicked = false;
+      closeSettings();
+    }
+  };
 
-// appearance button under settings
+  function closeSettings() {
+    settingsBtn.style.backgroundColor = "var(--buttonColor)";
+    settingsPopup.style.opacity = "0";
+    document.removeEventListener("click", shouldCloseSettings);
+  };
+};
+
+/* =========================================================================
+   // appearance button under settings
+   ========================================================================= */
 let appearanceClicked = false;
-let appearanceBtn = document.getElementById('chat-appearance');
-let appearancePopup = document.getElementById("appearance-popup");
-appearanceBtn.addEventListener('mouseover', () => {
-    if (settingsClicked) {
-        appearanceBtn.style.backgroundColor = "var(--mainColor)";
-    }
-})
+function initAppearanceButton(){
+  const appearanceBtn = App.el.appearanceBtn;
+  const appearancePopup = App.el.appearancePopup;
+  const closeAppearanceBtn = App.el.closeAppearance;
+  if (!appearanceBtn || !appearancePopup || !closeAppearanceBtn) return;
 
-appearanceBtn.addEventListener('mouseout', () => {
-    if (settingsClicked) {
-        if (!appearanceClicked) {
-            appearanceBtn.style.backgroundColor = "var(--buttonColor)";
-        }
-    }
-})
+  appearanceBtn.addEventListener('mouseover', () => {
+    if (settingsClicked) appearanceBtn.style.backgroundColor = "var(--mainColor)";
+  });
+  appearanceBtn.addEventListener('mouseout', () => {
+    if (settingsClicked && !appearanceClicked) appearanceBtn.style.backgroundColor = "var(--buttonColor)";
+  });
 
-function handleClick(event) {
-    lightModeBox.focus();
-    //console.log("handleClick: " + event.key);
+  function handleClick(event) {
+    const lightModeBox = App.el.lightModeBox;
+    if (lightModeBox) lightModeBox.focus();
     if (event.key === "Enter") {
-        handleAppearance();
+      handleAppearance();
     }
-}
+  }
 
-appearanceBtn.addEventListener("click", handleAppearance);
-function handleAppearance() {
-    if (settingsClicked) {
-        appearanceClicked = !appearanceClicked;
+  appearanceBtn.addEventListener("click", handleAppearance);
+  function handleAppearance() {
+    if (!settingsClicked) return;
+    appearanceClicked = !appearanceClicked;
 
-        if (appearanceClicked) {
-            appearanceBtn.style.backgroundColor = "var(--mainColor)";
-            // add menu display here
-            body.style.pointerEvents = "none"; // you cant click on anything else until you click the x button
-            appearancePopup.style.opacity = 1; // make appearance pop-up show up
-            appearancePopup.style.pointerEvents = "all"; // you can click on the buttons again
-            document.addEventListener("keydown", handleClick);
-        } else {
-            appearanceBtn.style.backgroundColor = "var(--buttonColor)";
-            appearanceClicked = !appearanceClicked; // this sets the appearanceClicked tracking variable to be right again
-            lightModeBox.blur();
-            darkModeBox.blur();
-            contrastModeBox.blur();
-            closeAppearance();
-        }
+    if (appearanceClicked) {
+      appearanceBtn.style.backgroundColor = "var(--mainColor)";
+      appearancePopup.style.opacity = 1; // make appearance pop-up show up
+      appearancePopup.style.pointerEvents = "all"; // you can click on the buttons again
+      document.addEventListener("keydown", handleClick);
+      document.addEventListener("click", shouldCloseAppearance); // close automatically if you click out of popup
+    } else {
+      appearanceBtn.style.backgroundColor = "var(--buttonColor)";
+      appearanceClicked = !appearanceClicked; // this sets the appearanceClicked tracking variable to be right again
+      if (App.el.lightModeBox) App.el.lightModeBox.blur();
+      if (App.el.darkModeBox) App.el.darkModeBox.blur();
+      if (App.el.contrastModeBox) App.el.contrastModeBox.blur();
+      closeAppearance();
     }
-}
+  }
 
-let closeAppearanceBtn = document.getElementById("close-appearance");
-closeAppearanceBtn.addEventListener('click', closeAppearance);
+  function shouldCloseAppearance(e) {
+    if(!appearancePopup || !appearanceBtn) return;
+    if(!appearancePopup.contains(e.target) && !appearanceBtn.contains(e.target)) closeAppearance();
+  };
 
-function closeAppearance() {
-    let settingsPopup = document.getElementsByClassName("settings-popup")[0];
-
+  closeAppearanceBtn.addEventListener('click', closeAppearance);
+  function closeAppearance() {
+    const settingsPopup = App.el.settingsPopup;
     appearancePopup.style.opacity = 0; // make popup close
-    body.style.pointerEvents="all"; // now you can click on everything again
     appearancePopup.style.pointerEvents = "none";
     appearanceClicked = !(appearanceClicked); // unclick appearance button
     appearanceBtn.style.backgroundColor = "var(--buttonColor)"; 
-    settingsBtn.style.backgroundColor = "var(--buttonColor)";
-    settingsPopup.style.opacity = "0";
-    settingsClicked = !settingsClicked;
+    App.el.settingsBtn.style.backgroundColor = "var(--buttonColor)";
+    if (settingsPopup) settingsPopup.style.opacity = "0";
+    settingsClicked = false;
     document.removeEventListener("keydown", handleClick);
+    document.removeEventListener("click", shouldCloseAppearance);
+  }
 }
 
-// dark mode
-let darkModeBox = document.getElementById("dark-mode");
-let lightModeBox = document.getElementById("light-mode");
-let contrastModeBox = document.getElementById("high-contrast-mode");
-let root = document.querySelector(':root');
-let aside2 = document.getElementsByTagName("aside")[0];
-let logoImg = document.getElementsByTagName("img")[0];
-let profileBox = document.getElementsByClassName("profile-icon")[0];
-let logoBox = document.getElementsByClassName("logo-container")[0];
-let formBox = document.getElementById("chat-form");
-let formInput = document.getElementById("chat-input");
+/* =========================================================================
+   // dark mode / light mode / high contrast mode
+   ========================================================================= */
+function initThemes(){
+  const darkModeBox = App.el.darkModeBox;
+  const lightModeBox = App.el.lightModeBox;
+  const contrastModeBox = App.el.contrastModeBox;
 
-darkModeBox.addEventListener("change", () => {
-    if (darkModeBox.checked) {
-        root.style.setProperty('--interfaceColor', '#343541');
-        root.style.setProperty('--asideColor', '#202123');
-        root.style.setProperty('--textColor', 'rgb(209, 213, 219)');
-        root.style.setProperty('--borderColor', 'hsla(0,0%,100%,.2)');
-        root.style.setProperty('--buttonColor', '#40414f');
-        root.style.setProperty('--headingColor', 'rgb(255,255,255)');
-        root.style.setProperty('--mainColor', 'var(--brand-blue)');
-        profileBox.style.border = '1px solid var(--borderColor)';
-        logoImg.style.filter = 'brightness(1) invert(0)'; // default for image
-        logoBox.style.backgroundColor = 'rgb(60, 60, 73)';
-        logoBox.style.borderBottom = 'none';
-        aside2.style.borderRight = 'none';
-        formBox.style.backgroundColor = 'rgb(71, 72, 87)';
-        formBox.style.border = 'none';
-        formInput.style.color = 'white';
+  const root = App.el.root;
+  const aside2 = App.el.aside;
+  const logoImg = App.el.logoImg;
+  const profileBox = App.el.profileBox;
+  const logoBox = App.el.logoBox;
+  const formBox = App.el.formBox;
+  const formInput = App.el.formInput;
 
-        root.style.setProperty('--backgroundColorUser', 'var(--brand-red)');
-        root.style.setProperty('--ColorUser', 'white');
-        root.style.setProperty('--borderUser', 'none');
- 
-        root.style.setProperty('--backgroundColorBot', '#2D5D5D');
-        root.style.setProperty('--ColorBot', 'white');
-        root.style.setProperty('--borderBot', 'none');
-    }
-})
+  if (darkModeBox) darkModeBox.addEventListener("change", () => {
+    if (!darkModeBox.checked) return;
+    root.style.setProperty('--interfaceColor', '#343541');
+    root.style.setProperty('--asideColor', '#202123');
+    root.style.setProperty('--textColor', 'rgb(209, 213, 219)');
+    root.style.setProperty('--borderColor', 'hsla(0,0%,100%,.2)');
+    root.style.setProperty('--buttonColor', '#40414f');
+    root.style.setProperty('--headingColor', 'rgb(255,255,255)');
+    root.style.setProperty('--mainColor', 'var(--brand-blue)');
+    if (profileBox) profileBox.style.border = '1px solid var(--borderColor)';
+    if (logoImg) logoImg.style.filter = 'brightness(1) invert(0)'; // default for image
+    if (logoBox){ logoBox.style.backgroundColor = 'rgb(60, 60, 73)'; logoBox.style.borderBottom = 'none'; }
+    if (aside2) aside2.style.borderRight = 'none';
+    if (formBox){ formBox.style.backgroundColor = 'rgb(71, 72, 87)'; formBox.style.border = 'none'; }
+    if (formInput) formInput.style.color = 'white';
 
-lightModeBox.addEventListener("change", () => {
-    if (lightModeBox.checked) {
-        //root.style.setProperty('--interfaceColor', 'rgb(126,114,114)');
-        root.style.setProperty('--interfaceColor', 'rgb(255,255,255)');
-        root.style.setProperty('--asideColor', '#d4c6b4');
-        root.style.setProperty('--textColor', '#1a1a1a');
-        root.style.setProperty('--borderColor', 'rgba(0,0,0,0.2)');
-        root.style.setProperty('--buttonColor', '#f0f0f0');
-        root.style.setProperty('--headingColor', '#000000');
-        root.style.setProperty('--mainColor', 'var(--brand-blue)');
-        profileBox.style.border = 'none';
-        logoImg.style.filter = 'brightness(1) invert(0)'; // default for image
-        logoBox.style.borderBottom = 'none';
-        logoBox.style.backgroundColor = '#d4c6b4';
-        aside2.style.borderRight = 'none';
-        formBox.style.backgroundColor = '#d4c6b4';
-        formBox.style.border = 'none';
-        formInput.style.color = 'var(--brand-red)';
- 
-        root.style.setProperty('--backgroundColorUser', 'var(--brand-red)');
-        root.style.setProperty('--ColorUser', 'white');
-        root.style.setProperty('--borderUser', 'none');
- 
-        root.style.setProperty('--backgroundColorBot', 'var(--brand-blue)');
-        root.style.setProperty('--ColorBot', 'white');
-        root.style.setProperty('--borderBot', 'none');
-    }
-})
+    root.style.setProperty('--backgroundColorUser', 'var(--brand-red)');
+    root.style.setProperty('--ColorUser', 'white');
+    root.style.setProperty('--borderUser', 'none');
 
-contrastModeBox.addEventListener("change", () => {
-    if (contrastModeBox.checked) {
-        root.style.setProperty('--interfaceColor', 'black');
-        root.style.setProperty('--asideColor', 'black');
-        root.style.setProperty('--textColor', 'white');
-        root.style.setProperty('--borderColor', 'white');
-        root.style.setProperty('--buttonColor', 'black');
-        root.style.setProperty('--headingColor', 'white');
-        root.style.setProperty('--mainColor', '#343541');
-        profileBox.style.border = '1px solid var(--borderColor)'; // put border around profile icon
-        logoImg.style.filter = 'brightness(0) invert(1)'; // turns image white
-        logoBox.style.borderBottom = '1px solid var(--borderColor)'; 
-        logoBox.style.backgroundColor = 'black';
-        aside2.style.borderRight = '1px solid var(--borderColor)';
-        formBox.style.backgroundColor = 'black';
-        formBox.style.border = '1px solid var(--borderColor)';
-        formInput.style.color = 'white';
+    root.style.setProperty('--backgroundColorBot', '#2D5D5D');
+    root.style.setProperty('--ColorBot', 'white');
+    root.style.setProperty('--borderBot', 'none');
+  });
 
-        // for chat messages
-        root.style.setProperty('--backgroundColorUser', 'black');
-        root.style.setProperty('--ColorUser', '#F16F7C');
-        root.style.setProperty('--borderUser', '1px solid #F16F7C');
+  if (lightModeBox) lightModeBox.addEventListener("change", () => {
+    if (!lightModeBox.checked) return;
+    root.style.setProperty('--interfaceColor', 'rgb(255,255,255)');
+    root.style.setProperty('--asideColor', '#d4c6b4');
+    root.style.setProperty('--textColor', '#1a1a1a');
+    root.style.setProperty('--borderColor', 'rgba(0,0,0,0.2)');
+    root.style.setProperty('--buttonColor', '#f0f0f0');
+    root.style.setProperty('--headingColor', '#000000');
+    root.style.setProperty('--mainColor', 'var(--brand-blue)');
+    if (profileBox) profileBox.style.border = 'none';
+    if (logoImg) logoImg.style.filter = 'brightness(1) invert(0)'; // default for image
+    if (logoBox){ logoBox.style.borderBottom = 'none'; logoBox.style.backgroundColor = '#d4c6b4'; }
+    if (aside2) aside2.style.borderRight = 'none';
+    if (formBox){ formBox.style.backgroundColor = '#d4c6b4'; formBox.style.border = 'none'; }
+    if (formInput) formInput.style.color = 'var(--brand-red)';
 
-        root.style.setProperty('--backgroundColorBot', 'black');
-        root.style.setProperty('--ColorBot', 'var(--brand-blue)');
-        root.style.setProperty('--borderBot', '1px solid var(--brand-blue)');
-    }
-})
+    root.style.setProperty('--backgroundColorUser', 'var(--brand-red)');
+    root.style.setProperty('--ColorUser', 'white');
+    root.style.setProperty('--borderUser', 'none');
 
-// font size button under settings
+    root.style.setProperty('--backgroundColorBot', 'var(--brand-blue)');
+    root.style.setProperty('--ColorBot', 'white');
+    root.style.setProperty('--borderBot', 'none');
+  });
+
+  if (contrastModeBox) contrastModeBox.addEventListener("change", () => {
+    if (!contrastModeBox.checked) return;
+    root.style.setProperty('--interfaceColor', 'black');
+    root.style.setProperty('--asideColor', 'black');
+    root.style.setProperty('--textColor', 'white');
+    root.style.setProperty('--borderColor', 'white');
+    root.style.setProperty('--buttonColor', 'black');
+    root.style.setProperty('--headingColor', 'white');
+    root.style.setProperty('--mainColor', '#343541');
+    if (profileBox) profileBox.style.border = '1px solid var(--borderColor)'; // put border around profile icon
+    if (logoImg) logoImg.style.filter = 'brightness(0) invert(1)'; // turns image white
+    if (logoBox){ logoBox.style.borderBottom = '1px solid var(--borderColor)'; logoBox.style.backgroundColor = 'black'; }
+    if (aside2) aside2.style.borderRight = '1px solid var(--borderColor)';
+    if (formBox){ formBox.style.backgroundColor = 'black'; formBox.style.border = '1px solid var(--borderColor)'; }
+    if (formInput) formInput.style.color = 'white';
+
+    // for chat messages
+    root.style.setProperty('--backgroundColorUser', 'black');
+    root.style.setProperty('--ColorUser', '#F16F7C');
+    root.style.setProperty('--borderUser', '1px solid #F16F7C');
+
+    root.style.setProperty('--backgroundColorBot', 'black');
+    root.style.setProperty('--ColorBot', 'var(--brand-blue)');
+    root.style.setProperty('--borderBot', '1px solid var(--brand-blue)');
+  });
+}
+
+/* =========================================================================
+   // font size button under settings
+   ========================================================================= */
 let sizeClicked = false;
-let sizeBtn = document.getElementById('font-size');
-let fontSizePopup = document.getElementById('textsize-popup')
-sizeBtn.addEventListener('mouseover', () => {
-    if (settingsClicked) {
-        sizeBtn.style.backgroundColor = "var(--mainColor)";
-    }
-})
+function initFontSizeButton(){
+  const sizeBtn = App.el.sizeBtn;
+  const fontSizePopup = App.el.fontSizePopup;
+  const closeSizeBtn = App.el.closeSizeBtn;
+  if (!sizeBtn || !fontSizePopup || !closeSizeBtn) return;
 
-sizeBtn.addEventListener('mouseout', () => {
-    if (settingsClicked) {
-        if (!sizeClicked) {
-            sizeBtn.style.backgroundColor = "var(--buttonColor)";
-        }
-    }
-})
+  sizeBtn.addEventListener('mouseover', () => {
+    if (settingsClicked) sizeBtn.style.backgroundColor = "var(--mainColor)";
+  });
+  sizeBtn.addEventListener('mouseout', () => {
+    if (settingsClicked && !sizeClicked) sizeBtn.style.backgroundColor = "var(--buttonColor)";
+  });
 
-function handleFontClick(event) {
-    range.focus();
-    //console.log("handleFontClick : " + event.key);
-
+  function handleFontClick(event) {
+    const range = App.el.range;
+    if (range) range.focus();
     if (event.key === "Enter") {
-        handleTextSize();
+      handleTextSize();
     }
-}
+  }
 
-sizeBtn.addEventListener("click", handleTextSize);
+  sizeBtn.addEventListener("click", handleTextSize);
+  function handleTextSize() {
+    if (!settingsClicked) return;
+    sizeClicked = !sizeClicked;
 
-function handleTextSize() {
-    if (settingsClicked) {
-        sizeClicked = !sizeClicked;
-
-        if (sizeClicked) {
-            sizeBtn.style.backgroundColor = "var(--mainColor)";
-            // add menu display here
-            body.style.pointerEvents = "none"; // you cant click on anything else until you click the x button
-            fontSizePopup.style.opacity = 1; // make pop-up show up
-            fontSizePopup.style.pointerEvents = "all"; // you can click on the buttons again
-            document.addEventListener("keydown", handleFontClick);
-        } else {
-            sizeBtn.style.backgroundColor = "var(--buttonColor)";
-            sizeClicked = !sizeClicked; // fixes the sizeClicked variable to show correctly
-            //document.removeEventListener("keydown", handleFontClick);
-            // this is in closeSize so that the event listener will close even if you click on the x button
-            range.blur();
-            closeSize();
-        }
+    if (sizeClicked) {
+      sizeBtn.style.backgroundColor = "var(--mainColor)";
+      fontSizePopup.style.opacity = 1; // make pop-up show up
+      fontSizePopup.style.pointerEvents = "all"; // you can click on the buttons again
+      document.addEventListener("keydown", handleFontClick);
+      document.addEventListener("click", shouldCloseFontSize); // close automatically if you click outside popup
+    } else {
+      sizeBtn.style.backgroundColor = "var(--buttonColor)";
+      sizeClicked = !sizeClicked; // fixes the sizeClicked variable to show correctly
+      if (App.el.range) App.el.range.blur();
+      closeSize();
     }
-}
+  }
 
-let closeSizeBtn = document.getElementById("close-textsize");
-closeSizeBtn.addEventListener("click", closeSize);
+  function shouldCloseFontSize(e) {
+    if (!fontSizePopup || !sizeBtn) return;
+    if (!fontSizePopup.contains(e.target) && !sizeBtn.contains(e.target)) closeSize();
+  };
 
-function closeSize() {
-    let settingsPopup = document.getElementsByClassName("settings-popup")[0];
+  closeSizeBtn.addEventListener("click", closeSize);
+  function closeSize() {
+    const settingsPopup = App.el.settingsPopup;
     fontSizePopup.style.opacity = 0; // make popup close
-    body.style.pointerEvents="all"; // now you can click on everything again
     fontSizePopup.style.pointerEvents = "none";
     sizeClicked = !(sizeClicked); // unclick size button
     sizeBtn.style.backgroundColor = "var(--buttonColor)"; 
-    settingsBtn.style.backgroundColor = "var(--buttonColor)";
-    settingsPopup.style.opacity = "0";
-    settingsClicked = !settingsClicked;
+    App.el.settingsBtn.style.backgroundColor = "var(--buttonColor)";
+    if (settingsPopup) settingsPopup.style.opacity = "0";
+    settingsClicked = false;
     document.removeEventListener("keydown", handleFontClick);
+    document.removeEventListener("click", shouldCloseFontSize);
+  }
 }
 
-//Customize text size
-// the scale function is:
-// num * (scalefactor)^index
+/* =========================================================================
+   //Customize text size
+   // the scale function is: num * (scalefactor)^index
+   ========================================================================= */
 function scaleFunction (num, scalefactor, index)  {
-    return num * (scalefactor ** index)
+  return num * (scalefactor ** index)
 }
-const range = document.getElementById("size-input");
-range.addEventListener("input", () => {
-    let index = range.value;
+function initFontScaling(){
+  const range = App.el.range;
+  if (!range) return;
+  range.addEventListener("input", () => {
+    let index = Number(range.value || 0);
     const chatMessageSize = 15; // what user and bot chat messages are set to in the CSS
     const inputMessageSize = 16; // what the chat input message is set to in the CSS
     const scalefactor = 1.15;
-    let userChatMsg = document.querySelector(".chat-message.user");
-    let chatBoxMsg = document.querySelector(".chat-message.bot");
+    let userChatMsgs = document.querySelectorAll(".chat-message.user");
+    let chatBoxMsgs = document.querySelectorAll(".chat-message.bot");
     let userInputMsg = document.querySelector("#chat-input");
 
     // handle input box first
     if (userInputMsg) {
-        userInputMsg.style.fontSize = scaleFunction(inputMessageSize, scalefactor, index) + "px";
+      userInputMsg.style.fontSize = scaleFunction(inputMessageSize, scalefactor, index) + "px";
     }
 
     // handle chat messages next if they exist
-    if (userChatMsg && chatBoxMsg) {
-        userChatMsg.style.fontSize = scaleFunction(chatMessageSize, scalefactor, index) + "px";
-        chatBoxMsg.style.fontSize = scaleFunction(chatMessageSize, scalefactor, index) + "px";
-    }
-});
+    scaledChatFontSize = scaleFunction(chatMessageSize, scalefactor, index);
+    userChatMsgs.forEach(function(userResponse){
+      userResponse.style.fontSize = scaledChatFontSize + "px";
+    });
+    chatBoxMsgs.forEach(function(chatResponse){
+      chatResponse.style.fontSize = scaledChatFontSize + "px";
+    });
+  });
+}
 
+/* =========================================================================
+   New Chat button
+   ========================================================================= */
+function initNewChat(){
+  const newChatBtn = App.el.newChatBtn;
+  const messagesEl = App.el.messagesEl;
+  const inputEl    = App.el.inputEl;
+  const welcomeEl  = App.el.welcomeEl;
 
-document.addEventListener("DOMContentLoaded", function () {
-  const newChatBtn   = document.getElementById("new-chat-btn");
-  const messagesEl   = document.getElementById("chat-messages");
-  const inputEl      = document.getElementById("chat-input");
-  const welcomeEl    = document.getElementById("welcome-text");
-
-  if (!newChatBtn) return;
+  if (!newChatBtn || !messagesEl || !inputEl) return;
 
   newChatBtn.addEventListener("click", () => {
-    // (Optional) save current conversation here before clearing, if you want persistence
-
     // Clear current messages only
     messagesEl.innerHTML = "";
 
@@ -368,7 +487,10 @@ document.addEventListener("DOMContentLoaded", function () {
       welcomeEl.style.display = "block";
       welcomeEl.textContent = ""; // reset typing text
       // re-run the typing effect if desired:
-      typeWelcomeAgain(welcomeEl, "Welcome to ChatRLB!", 75);
+      let i = 0; const msg = "Welcome to ChatRLB!";
+      (function step(){
+        if (i < msg.length) { welcomeEl.textContent += msg.charAt(i++); setTimeout(step, 75); }
+      })();
     }
 
     // Reset and focus input
@@ -379,45 +501,41 @@ document.addEventListener("DOMContentLoaded", function () {
     messagesEl.scrollTop = messagesEl.scrollHeight;
 
     // Update global variable so that chat history still works when new chat button clicked
-    hasChattedOnce = false;
+    App.state.hasChattedOnce = false;
+  });
+}
+
+/* =========================================================================
+   // ---- SAFE CHAT WIRING ----
+   ========================================================================= */
+function initChatWiring(){
+  const chatContainer = App.el.messagesEl;
+  const chatForm      = App.el.chatForm;
+  const chatInput     = App.el.inputEl;
+
+  if (!chatForm || !chatInput || !chatContainer) {
+    console.warn("[chat] missing form/input/container");
+    return;
+  }
+
+  // Allow Enter to submit (Shift+Enter = newline)
+  chatInput.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      chatForm.requestSubmit();
+    }
   });
 
-  function typeWelcomeAgain(node, msg, speedMs) {
-    let i = 0;
-    function step() {
-      if (i < msg.length) {
-        node.textContent += msg.charAt(i++);
-        setTimeout(step, speedMs);
-      }
-    }
-    step();
-  }
-});
-
-let hasChattedOnce = false; // Global so that it can change when new chat button is pressed.
-
-document.addEventListener("DOMContentLoaded", function () {
-  const chatContainer = document.getElementById("chat-messages");
-  const chatForm      = document.getElementById("chat-form");
-  const chatInput     = document.getElementById("chat-input");
-  // Allow Enter to submit the chat (and Shift+Enter to add a new line)
-chatInput.addEventListener("keydown", function (e) {
-  if (e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault();       // stop newline
-    chatForm.requestSubmit(); // triggers the form's submit event
-  }
-});
-
-
-  if (!chatForm || chatForm.dataset.bound === "1") return;
-  chatForm.dataset.bound = "1"; // prevent duplicate listeners
+  // Prevent double-binding
+  if (chatForm.dataset.bound === "1") return;
+  chatForm.dataset.bound = "1";
 
   chatForm.addEventListener("submit", async function (e) {
     e.preventDefault();
     const message = chatInput.value.trim();
     if (!message) return;
 
-    appendMessage("user", message);
+    appendMessage("user", message, chatContainer);
     chatInput.value = "";
 
     try {
@@ -430,200 +548,591 @@ chatInput.addEventListener("keydown", function (e) {
         body: JSON.stringify({ message })
       });
       const data = await response.json();
-      appendMessage("bot", data.reply || "No response");
+      const botText = data.reply || "No response";
+      appendMessage("bot", botText, chatContainer);
 
-      // create message object to store message
-      const messageSet = {
-        question: message,
-        chatResponse: data.reply
-      };
-      //console.log(messageSet);
-      //console.log("hasChattedOnce? " + hasChattedOnce);
-
-      if (hasChattedOnce === false) {
-        // first time chatting
-        const chatHistoryEntry = extractMainIdea(data.reply);
-        const chatHistoryDate = new Date().toLocaleString('en-US', { month: 'short', day: '2-digit'});
-        // create history object to store history, date, and messages
-        const historyObject = {
-            keyword: chatHistoryEntry,
-            date: chatHistoryDate,
-            messages: [messageSet]
-        };
-        //console.log(historyObject);
-        history.push(historyObject);
-        localStorage.setItem('history', JSON.stringify(history));
-        createHistory(history[history.length - 1].keyword, history[history.length - 1].date); // call global function
-        loadHistory();
-
-        hasChattedOnce = !hasChattedOnce; // only run the if block for the first message
-
+      // --- history handling ---
+      const messageSet = { question: message, chatResponse: botText };
+      if (App.state.hasChattedOnce === false) {
+        const chatHistoryEntry = extractMainIdea(botText);
+        const chatHistoryDate  = new Date().toLocaleString('en-US', { month: 'short', day: '2-digit' });
+        const historyObject = { keyword: chatHistoryEntry, date: chatHistoryDate, messages: [messageSet] };
+        chatHistory.push(historyObject);
+        saveChatHistory();
+        const idx = chatHistory.length - 1;
+        activeSession = idx;
+        createHistory(chatHistory[idx].keyword, chatHistory[idx].date, idx);
+        App.state.hasChattedOnce = true;
       } else {
-        // stored in same history object
-        history[history.length - 1].messages.push(messageSet);
-        localStorage.setItem('history', JSON.stringify(history));
-        //console.log(history);
-        //console.log(history.length);
-        
+        chatHistory[activeSession].messages.push(messageSet);
+        saveChatHistory();
       }
     } catch (err) {
-      appendMessage("bot", "⚠️ Error: Could not contact server.");
+      appendMessage("bot", "⚠️ Error: Could not contact server.", chatContainer);
+      console.warn("[chat] fetch error:", err);
+    }
+  });
+}
+
+/* =========================================================================
+   Append message helper (fires TTS event for bot)
+   ========================================================================= */
+function appendMessage(sender, text, containerEl) {
+  const container = containerEl || document.getElementById("chat-messages");
+  if (!container) return;
+
+  const welcome = document.querySelector("#welcome-text");
+  if (welcome) welcome.style.display = "none";
+
+  const msg = document.createElement("div");
+  msg.classList.add("chat-message", sender);
+  msg.innerHTML = `<p>${text}</p>`;
+  msg.style.fontSize = (typeof scaledChatFontSize !== "undefined" ? scaledChatFontSize : 16) + "px";
+  container.appendChild(msg);
+
+  container.scrollTop = container.scrollHeight;
+
+  if (sender === "bot") {
+    const event = new CustomEvent("assistant-appended", { detail: { text } });
+    document.dispatchEvent(event);
+  }
+}
+
+/* =========================================================================
+   // CSRF helper
+   ========================================================================= */
+function getCSRFToken() {
+  let cookieValue = null;
+  const cookies = document.cookie.split(';');
+  for (let cookie of cookies) {
+    const trimmed = cookie.trim();
+    if (trimmed.startsWith("csrftoken=")) {
+      cookieValue = trimmed.substring("csrftoken=".length);
+      break;
+    }
+  }
+  return cookieValue;
+}
+
+/* =========================================================================
+   // Keyword extraction for history
+   ========================================================================= */
+function extractMainIdea(text) {
+  const stopWords = new Set(["the","a","an","is","of","and","in","to","for","on","with","as","at","about","you","this","that","he","not","jesus","god"]);
+  // parse text to get rid of html markdown first
+  const parser = new DOMParser();
+  const words = (parser.parseFromString(text || "", 'text/html').body.textContent.toLowerCase().match(/\b[a-zA-Z\'\’]+\b/g) || [])
+    .filter(w => !stopWords.has(w));
+  const counts = {};
+  for (const w of words) counts[w] = (counts[w] || 0) + 1;
+  const top = Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
+  if (!top) return "Conversation";
+  const word = top[0];
+  return word.charAt(0).toUpperCase() + word.slice(1);
+}
+
+/* =========================================================================
+   Welcome typing (original behavior)
+   ========================================================================= */
+function initWelcomeTyping(){
+  const welcomeText = $id("welcome-text");
+  if (!welcomeText) return;
+  const message = "Welcome to ChatRLB!";
+  let index = 0;
+  function typeNextChar() {
+    if (index < message.length) {
+      welcomeText.textContent += message.charAt(index);
+      index++;
+      setTimeout(typeNextChar, 75); // Speed in ms
+    }
+  }
+  typeNextChar();
+}
+
+/* =========================================================================
+   //about RLB button
+   ========================================================================= */
+function initAboutPopup(){
+  const aboutLink = App.el.aboutLink;
+  const popup = App.el.aboutPopup;
+  const closePopup = App.el.aboutClose;
+  if (!aboutLink || !popup || !closePopup) return;
+
+  aboutLink.addEventListener('click', function (e) {
+    e.preventDefault(); // Prevent link jump
+    popup.classList.remove('hidden'); // Show popup
+  });
+
+  closePopup.addEventListener('click', function () {
+    popup.classList.add('hidden'); // Hide popup
+  });
+
+  // Close if click outside popup content
+  window.addEventListener('click', function (e) {
+    if (e.target === popup) {
+      popup.classList.add('hidden');
+    }
+  });
+}
+
+/* =========================================================================
+   // creates history entry in sidebar and sets event listener to load the messages in that history entry
+   ========================================================================= */
+function createHistory(keyword, date, index) {
+  let histPlaceHolder = document.getElementById("hist-placeholder");
+  const host = App.el.chatHistorySec || histPlaceHolder?.parentElement || $one("aside") || document.body;
+
+  if (histPlaceHolder) histPlaceHolder.style.display = "none";
+  const newHist = document.createElement('span');
+  const keywordT = document.createElement('p');
+  keywordT.textContent = `${keyword || "Conversation"}`;
+  keywordT.classList.add('hist-kw');
+  const histLeftSpan = document.createElement('span');
+  histLeftSpan.classList.add('hist-left-span');
+  const keywordD = document.createElement('p');
+  keywordD.textContent = `${date || ""}`;
+  const histIconCircle = document.createElement('div');
+  const histIcon = document.createElement('i');
+  histIcon.classList.add('fa-solid');
+  histIcon.classList.add('fa-ellipsis-vertical');
+  histIconCircle.classList.add('hist-icon-circle');
+  histIconCircle.appendChild(histIcon);
+  histLeftSpan.appendChild(keywordD);
+  histLeftSpan.appendChild(histIconCircle);
+  newHist.classList.add('history-entry');
+  newHist.appendChild(keywordT);
+  newHist.appendChild(histLeftSpan);
+
+  if (histPlaceHolder) {
+    histPlaceHolder.insertAdjacentElement("afterend", newHist); // add most recent to top
+  } else {
+    host.prepend(newHist);
+  }
+
+  newHist.addEventListener('mouseover', () => {
+    newHist.style.backgroundColor= "var(--mainColor)";
+    newHist.style.color = "var(--headingColor)";
+  });
+
+  newHist.addEventListener('mouseout', () => {
+    newHist.style.backgroundColor = "var(--asideColor)";
+    newHist.style.color = "var(--textColor)";
+  });
+  
+  newHist.addEventListener("click", e => {
+    if(notOpeningHistoryMenu(e)) loadHistory(index);
+    activeSession = index;
+  });
+
+  histIconCircle.addEventListener("click", e => {
+    const targetEntry = e.target.closest('.history-entry');
+    const targetKeyword = targetEntry.querySelector('.hist-kw');
+    openHistMenu(e.clientY, index, targetKeyword);
+  });
+}
+
+function openHistMenu(y, index, keyword) {
+  const histMenu = App.el.histMenu;
+  const histClose = App.el.histClose;
+  const renameBtn = App.el.renameBtn;
+  const deleteBtn = App.el.deleteBtn;
+  if (!histMenu || !histClose || !renameBtn || !deleteBtn) return;
+  histMenu.style.display = 'block';
+  histMenu.style.top = `${y-15}px`;
+
+  histClose.addEventListener("click", () => closeHist());
+
+  document.addEventListener("click", e => {
+    if (notOpeningHistoryMenu(e) && !histMenu.contains(e.target)) closeHist();
+  });
+
+  renameBtn.onclick = () => renameHist(index, keyword);
+
+  deleteBtn.onclick = () => deleteHist(index);
+};
+
+function notOpeningHistoryMenu(e) {
+  return (e.target.className != 'fa-solid fa-ellipsis-vertical' && e.target.className != 'hist-icon-circle');
+};
+
+function closeHist() {
+  const histMenu = App.el.histMenu;
+  if (histMenu) histMenu.style.display = 'none';
+};
+
+function renameHist(index, keyword) {
+  keyword.contentEditable = 'true';
+  keyword.focus();
+  // create range and select entire content
+  const keywordRangeEl = document.createRange();
+  keywordRangeEl.selectNodeContents(keyword);
+  // get selection object and apply new range
+  const keywordSelection = window.getSelection();
+  keywordSelection.removeAllRanges();
+  keywordSelection.addRange(keywordRangeEl);
+
+  keyword.addEventListener("keydown", e => {
+    if (e.key === "Enter") keyword.blur()
+  });
+
+  keyword.addEventListener("blur", () => {
+    keyword.contentEditable = 'false';
+    chatHistory[index].keyword = keyword.textContent;
+    saveChatHistory();
+    closeHist();
+  });
+};
+
+function deleteHist(index) {
+  const historySection = App.el.chatHistorySec;
+  const chatContainer = App.el.messagesEl;
+  const welcomeText = App.el.welcomeEl;
+  if (!historySection || !chatContainer) return;
+  chatHistory.splice(index, 1); // removes the specified index
+  saveChatHistory();
+
+  // clear required sections before reloading history
+  historySection.innerHTML = '';
+  chatContainer.innerHTML = '';
+  initHistoryBoot();
+
+  // reset global variable so that history will work if user tries to enter question w/o clicking new chat btn
+  App.state.hasChattedOnce = false;
+
+  const histHr = document.createElement("hr"); // for line at top
+  if (chatHistory.length === 0) {
+    const histPlaceHolder = document.createElement('p');
+    histPlaceHolder.textContent = "Start a new chat to begin...";
+    histPlaceHolder.id = "hist-placeholder";
+    historySection.insertAdjacentElement('afterbegin', histPlaceHolder);
+  }
+  historySection.insertAdjacentElement('afterbegin', histHr);
+
+  // rerun welcome animation
+  if (welcomeText){ 
+    welcomeText.textContent = ''; // clear so it doesn't print same thing twice
+    welcomeText.style.display = "block";
+  }
+  initWelcomeTyping();
+  closeHist();
+};
+
+// loading chat history as soon as the browser loads
+function initHistoryBoot(){
+  for (let i=0; i<chatHistory.length; i++) {
+    createHistory(chatHistory[i].keyword, chatHistory[i].date, i);
+  }
+}
+
+// loading by index avoids bug if keywords have the same name
+function loadHistory(index) {
+  const chatContainer = document.getElementById("chat-messages");
+  if (!chatContainer) return;
+  // clear chat before history entry gets loaded
+  chatContainer.innerHTML = '';
+  // load each message in the history entry
+  (chatHistory[index]?.messages || []).forEach(function (message){
+    addHistoryMessage("user", message.question, chatContainer);
+    addHistoryMessage("bot", message.chatResponse, chatContainer);
+  });
+};
+
+// load the chat messages back
+function addHistoryMessage(sender, text, container) {
+  const welcome = document.querySelector("#welcome-text");
+
+  if (welcome) welcome.style.display = "none";
+  const msg = document.createElement("div");
+  msg.classList.add("chat-message", sender);
+  msg.innerHTML = `<p>${text}</p>`;
+  msg.style.fontSize = scaledChatFontSize + "px";
+  container.appendChild(msg);
+
+  // Keep the newest message visible
+  container.scrollTop = container.scrollHeight;
+};
+
+/* =========================================================================
+   // ============ TTS: Assistant-only reader ============
+   ========================================================================= */
+function initTTS() {
+  console.log("[tts] loaded");
+  const synth = window.speechSynthesis || null;
+  if (!synth) {
+    console.warn("[tts] no window.speechSynthesis available");
+    return;
+  }
+
+  let ttsOn = false;
+
+  function updateTtsBtn() {
+    const btn = document.getElementById("tts-btn");
+    if (!btn) return;
+    btn.title = ttsOn ? "Reading: ON" : "Reading: OFF";
+    btn.classList.toggle("is-on", ttsOn);
+  }
+
+  function ensureTtsBtn() {
+    let btn = document.getElementById("tts-btn");
+    if (!btn) {
+      const toolbar = document.getElementById("chat-form") || document.body;
+      btn = document.createElement("button");
+      btn.type = "button";
+      btn.id = "tts-btn";
+      btn.className = "icon-btn";
+      btn.style.marginLeft = "8px";
+      btn.innerHTML = '<i class="fa fa-volume-up"></i>';
+      toolbar.appendChild(btn);
+    }
+
+    btn.addEventListener("click", () => {
+      ttsOn = !ttsOn;
+      try {
+        if (!ttsOn && synth.speaking) synth.cancel();
+      } catch (e) {}
+      updateTtsBtn();
+    });
+
+    updateTtsBtn();
+  }
+
+  function cleanText(text) {
+  // Remove HTML tags
+  const tempDiv = document.createElement("div");
+  tempDiv.innerHTML = text;
+  const stripped = tempDiv.textContent || tempDiv.innerText || "";
+
+  // Optional: remove extra / weird characters
+  return stripped.replace(/\/[a-z]+/gi, "");
+  }
+
+
+  function getPreferredVoice() {
+    const voices = synth.getVoices();
+    // Choose a clear, human-like voice
+    return (
+      voices.find(v =>
+        v.name.includes("Google US English") || v.name.includes("Microsoft")
+      ) 
+    );
+  }
+
+  function speak(text) {
+    if (!ttsOn || !text) return;
+      try {
+        if (synth.speaking) synth.cancel();
+
+          const uttr = new SpeechSynthesisUtterance(cleanText(text));
+          uttr.voice = getPreferredVoice();
+          uttr.rate = 1.4;
+          uttr.pitch = 1.15;
+          uttr.volume = 1;
+
+          synth.speak(uttr);
+    } catch (e) {
+        console.warn("[tts] speak error", e);
+  }
+}
+
+
+  // Make sure voices are loaded (some browsers require this)
+  if (speechSynthesis.onvoiceschanged !== undefined) {
+    speechSynthesis.onvoiceschanged = () => getPreferredVoice();
+  }
+
+  // Listen for assistant messages
+  document.addEventListener("assistant-appended", ev => {
+    const text = ev.detail?.text?.trim() || "";
+    if (text) speak(text);
+  });
+
+  ensureTtsBtn();
+}
+
+
+/* =========================================================================
+   // ================== STT (Web Speech API, no models) ==================
+   ========================================================================= */
+function initSTT(){
+  (function () {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    const form  = document.getElementById("chat-form");
+    const input = document.getElementById("chat-input");
+    if (!form || !input) return;
+
+    // Reuse an existing mic button if present; otherwise create one.
+    let micBtn =
+      document.getElementById("stt-mic-btn") ||
+      document.getElementById("stt-btn") || // if you already had this id
+      null;
+
+    if (!micBtn) {
+      const submitBtn = form.querySelector('button[type="submit"]') || form.lastElementChild;
+      micBtn = document.createElement("button");
+      micBtn.type = "button";
+      micBtn.id = "stt-mic-btn";
+      micBtn.className = "icon-btn";
+      micBtn.title = "Speak";
+      micBtn.style.marginLeft = "8px";
+      micBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
+      form.insertBefore(micBtn, submitBtn);
+    }
+
+    if (!SR) {
+      micBtn.disabled = true;
+      micBtn.title = "Speech recognition not supported (try Chrome/Edge/Safari)";
+      micBtn.innerHTML = '<i class="fa-solid fa-ban"></i>';
+      console.warn("[STT] Web Speech API not supported.");
+      return;
+    }
+
+    const rec = new SR();
+    rec.lang = "en-US";
+    rec.continuous = false;     // one utterance per click
+    rec.interimResults = true;  // show live words in placeholder
+
+    let listening = false;
+    const originalPH = input.placeholder;
+
+    function setMicUI(active) {
+      listening = active;
+      micBtn.classList.toggle("listening", active);
+      micBtn.innerHTML = active
+        ? '<i class="fa-solid fa-microphone-lines"></i>'
+        : '<i class="fa-solid fa-microphone"></i>';
+      micBtn.title = active ? "Listening…" : "Speak";
+    }
+
+    rec.onstart = () => {
+      setMicUI(true);
+      input.selectionStart = input.selectionEnd = input.value.length;
+    };
+
+    rec.onresult = (e) => {
+      let interim = "", finalTxt = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const t = e.results[i][0].transcript;
+        if (e.results[i].isFinal) finalTxt += t; else interim += t;
+      }
+      input.placeholder = interim || originalPH;
+
+      if (finalTxt) {
+        input.value = (input.value ? input.value.trim() + " " : "") + finalTxt.trim();
+      }
+    };
+
+    rec.onerror = (e) => {
+      console.warn("[STT] error:", e.error || e);
+      input.placeholder = originalPH;
+      setMicUI(false);
+    };
+
+    rec.onend = () => {
+      input.placeholder = originalPH;
+      setMicUI(false);
+      if (input.value.trim()) form.requestSubmit();
+    };
+
+    micBtn.addEventListener("click", () => {
+      if (!listening) {
+        try { rec.start(); } catch (err) { console.warn("[STT] start error:", err); }
+      } else {
+        rec.stop();
+      }
+    });
+  })();
+}
+
+/* =========================================================================
+   // ---------- Study Mode ----------
+   (Notes panel version)
+   ========================================================================= */
+function initStudyModeNotesPanel(){
+  const studyBtn  = App.el.studyBtn;
+  const bar       = App.el.studyBar;
+  const panel     = App.el.notesPanel;
+  const closeBtn  = App.el.notesClose;
+  const refEl     = App.el.notesRef;
+  const textEl    = App.el.notesText;
+  const pointsEl  = App.el.notesPoints;
+
+  if (!studyBtn || !bar || !panel || !closeBtn || !refEl || !textEl || !pointsEl) return;
+
+  const DEMO_VERSES = [
+    {
+      ref: "John 3:3",
+      text: "Jesus answered, 'Truly, truly, I say to you, unless one is born again he cannot see the kingdom of God.'",
+      notes: ["Spiritual rebirth is required to perceive God's kingdom.", "Context: Nicodemus."]
+    },
+    {
+      ref: "Luke 11:1–4",
+      text: "Jesus teaches the Lord’s Prayer as a model for prayer.",
+      notes: ["Prioritizes God’s name and kingdom.", "Daily dependence, forgiveness, protection from temptation."]
+    },
+    {
+      ref: "John 17:20–21",
+      text: "Jesus prays for future believers to be one, so the world may believe.",
+      notes: ["Unity among believers is a witness.", "From the High Priestly Prayer."]
+    }
+  ];
+
+  function renderChips(verses = []) {
+    const bar = document.getElementById('study-bar');
+  bar.classList.remove('hidden');      // show slot
+  bar.innerHTML = '';
+  verses.forEach(v => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'chip';
+    chip.textContent = v.ref;
+    chip.addEventListener('click', () => openNotes(v));
+    bar.appendChild(chip);
+  });
+  }
+
+  function openNotes(verse) {
+    refEl.textContent = verse.ref || '';
+    textEl.textContent = verse.text || '';
+    pointsEl.innerHTML = '';
+    (verse.notes || []).forEach(n => {
+      const li = document.createElement('li');
+      li.textContent = n;
+      pointsEl.appendChild(li);
+    });
+    panel.classList.remove('hidden');
+    document.body.classList.add('with-notes');     // <-- enable split layout
+    document.getElementById('notes-panel').classList.remove('hidden');
+  }
+
+  function closeNotes() {
+    document.getElementById('notes-panel').classList.add('hidden');
+    document.body.classList.remove('with-notes');
+  }
+
+  closeBtn.addEventListener('click', closeNotes);
+
+  let studyOn = false;
+  studyBtn.addEventListener('click', () => {
+    studyOn = !studyOn;
+    if (studyOn) {
+      renderChips(DEMO_VERSES);
+    } else {
+      bar.innerHTML = '';
+      bar.classList.add('hidden'); 
+      closeNotes();
     }
   });
 
-  function appendMessage(sender, text) {
-    const welcome = document.querySelector("#welcome-text");
-    if (welcome) welcome.style.display = "none";
-
-    const msg = document.createElement("div");
-    msg.classList.add("chat-message", sender);
-    msg.innerHTML = `<p>${text}</p>`;
-    chatContainer.appendChild(msg);
-
-    // Keep the newest message visible
-    chatContainer.scrollTop = chatContainer.scrollHeight;
-  }
-
-  function getCSRFToken() {
-    let cookieValue = null;
-    const cookies = document.cookie.split(';');
-    for (let cookie of cookies) {
-      const trimmed = cookie.trim();
-      if (trimmed.startsWith("csrftoken=")) {
-        cookieValue = trimmed.substring("csrftoken=".length);
-        break;
+  // Optional: also show fresh chips after each user send (fake “AI suggestions”)
+  const chatForm  = App.el.chatForm;
+  if (chatForm) {
+    chatForm.addEventListener('submit', () => {
+      if (studyOn) {
+        // For demo: re-render the same chips; later plug in real suggestions
+        renderChips(DEMO_VERSES);
       }
-    }
-    return cookieValue;
+    });
   }
-
-  // sometimes it can return unlikely words
-  // if word returned that is undesired, add it to the set of stopWords (for right now)
-  function extractMainIdea(text) {
-    const stopWords = new Set(["the", "a", "an", "is", "of", "and", "in", "to", "for", "on", "with", "as", "at", "about", "you", "this", "that", "he", "not", "jesus", "god"]);
-    const words = text.toLowerCase().match(/\b[a-zA-Z\'\’]+\b/g); // Tokenize and convert to lowercase
-    const wordCounts = {};
-
-    // Don't include the stopwords
-    for (const word of words) {
-        if (!stopWords.has(word)) {
-            wordCounts[word] = (wordCounts[word] || 0) + 1;
-        }
-    }
-    //console.log(wordCounts);
-
-    // Sort by frequency (descending order)
-    const sortedKeywords = Object.entries(wordCounts)
-    .sort(([, countA], [, countB]) => countB - countA)
-    .map(([word]) => word);
-
-    //console.log(sortedKeywords);
-    const topWord = sortedKeywords[0]; // Get most frequent word
-    return topWord.charAt(0).toUpperCase() + topWord.slice(1); // Return most frequent word capitalized
-    }
-
-});
-
-document.addEventListener("DOMContentLoaded", function () {
-    const welcomeText = document.getElementById("welcome-text");
-    const message = "Welcome to ChatRLB!";
-    let index = 0;
-
-    function typeNextChar() {
-        if (index < message.length) {
-            welcomeText.textContent += message.charAt(index);
-            index++;
-            setTimeout(typeNextChar, 75); // Speed in ms
-        }
-    }
-
-    typeNextChar();
-});
-
-//about RLB button
-document.addEventListener('DOMContentLoaded', function () {
-    const aboutLink = document.getElementById('about-link');
-    const popup = document.getElementById('aboutPopup');
-    const closePopup = document.getElementById('popup-close');
-
-    aboutLink.addEventListener('click', function (e) {
-        e.preventDefault(); // Prevent link jump
-        popup.classList.remove('hidden'); // Show popup
-    });
-
-    closePopup.addEventListener('click', function () {
-        popup.classList.add('hidden'); // Hide popup
-    });
-
-    // Close if click outside popup content
-    window.addEventListener('click', function (e) {
-        if (e.target === popup) {
-            popup.classList.add('hidden');
-        }
-    });
-});
-
-// used for both loading the chat history when the browser opens and every time a new history is added
-function createHistory(keyword, date) {
-    let histPlaceHolder = document.getElementById("hist-placeholder");
-    if (histPlaceHolder) histPlaceHolder.style.display = "none";
-    const newHist = document.createElement('span');
-    const keywordP = document.createElement('p');
-    keywordP.textContent = `${keyword}`;
-    keywordP.classList.add('hist-kw');
-    const keywordD = document.createElement('p');
-    keywordD.textContent = `${date}`
-    newHist.classList.add('history-entry');
-    newHist.appendChild(keywordP);
-    newHist.appendChild(keywordD);
-    histPlaceHolder.insertAdjacentElement("afterend", newHist); // add most recent to top
 }
 
-// loading chat history as soon as the browser loads
-document.addEventListener("DOMContentLoaded", function() {
-    for (i=0; i<history.length; i++) {
-        createHistory(history[i].keyword, history[i].date);
-    }
-});
-
-document.addEventListener("DOMContentLoaded", loadHistory);
-
-function loadHistory() {
-    const chatContainer = document.getElementById("chat-messages");
-    document.querySelectorAll(".history-entry").forEach((entry) => {
-        const histKw = entry.querySelector(".hist-kw");
-        if (histKw) {
-            histKw.addEventListener("click", () => {
-                const text = histKw.textContent.trim();
-                // search if any of the keywords in history match the text in the sidebar
-                const match = history.find(h => h.keyword === text);
-
-                // clear chat before loading so that the wrong chats won't load on top of eachother
-                chatContainer.innerHTML = "";
-
-                if (match) {
-                    for (let i=0; i < match.messages.length; i++){
-                        addHistoryMessage("user", match.messages[i].question);
-                        addHistoryMessage("bot", match.messages[i].chatResponse);
-                    }
-                } else {
-                    console.log("No history found");
-                }
-            }); 
-        };
-    });
-
-    // load the chat messages back
-    function addHistoryMessage(sender, text) {
-        const welcome = document.querySelector("#welcome-text");
-
-        if (welcome) welcome.style.display = "none";
-        const msg = document.createElement("div");
-        msg.classList.add("chat-message", sender);
-        msg.innerHTML = `<p>${text}</p>`;
-        chatContainer.appendChild(msg);
-
-        // Keep the newest message visible
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-  }
-};
