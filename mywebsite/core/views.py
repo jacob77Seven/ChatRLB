@@ -9,6 +9,7 @@ from django.conf import settings
 import os, json, pyaudio
 from vosk import Model, KaldiRecognizer
 import markdown
+from .backend.BackendStudyManager import *
 
 # Create your views here.
 from django.shortcuts import render
@@ -33,7 +34,7 @@ def chatbot_reply(request):
         bot_reply = model_manager.gen_Response(user_input)
         formatted_bot_reply = markdown.markdown(bot_reply)
         # bot_reply = response.message.content # f"Jesus says: '{user_input}' is a great question to reflect on."
-
+        GetVerseReferences()
         return JsonResponse({"reply": formatted_bot_reply})
 
     return JsonResponse({"error": "Invalid request"}, status=400)
