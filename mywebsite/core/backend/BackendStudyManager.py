@@ -8,8 +8,8 @@ def StartBackend(VerseRef):
 def EndBackend():
     print("Stopped backend manager success.")
 
-def SendChatMessage(Message):
-    print("Sending AI message to chat.")
+def SetNotes(newNotes):
+    print("Setting Notes Pannel to new notes.")
 
 def GetVerseReferences():
     refs = ["Matthew 9:10", "Leviticus 10:11", "Genesis 3:10"]
