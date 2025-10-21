@@ -1078,10 +1078,31 @@ function initStudyModeNotesPanel(){
     }
   ];*/
 
+  async function makeRequest(url, method, body) {
+    let headers = {
+      'X-Requested-With': 'XMLHttpRequest',
+      'Content-Type': 'application/json'
+    };
+
+    if (method == 'post') {
+      const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+      headers['X-CSRFToken'] = csrf;
+    };
+
+    let response = await fetch(url, {
+      method: method,
+      headers: headers,
+      body: body
+    });
+
+    return await response.json();  // return data
+  };
+
   function renderChips(verses = []) {
     const bar = document.getElementById('study-bar');
   bar.classList.remove('hidden');      // show slot
   bar.innerHTML = '';
+  if (verses.length == 0) {console.log("no verses"); return;}
   verses.forEach(v => {
     const chip = document.createElement('button');
     chip.type = 'button';
@@ -1114,10 +1135,12 @@ function initStudyModeNotesPanel(){
   closeBtn.addEventListener('click', closeNotes);
 
   let studyOn = false;
+  let verse = [];
   studyBtn.addEventListener('click', () => {
     studyOn = !studyOn;
+    implementStudyMode(studyOn, verse); // async function to turn on or off study mode
     if (studyOn) {
-      renderChips(DEMO_VERSES);
+      //renderChips(DEMO_VERSES);
     } else {
       bar.innerHTML = '';
       bar.classList.add('hidden'); 
@@ -1125,13 +1148,26 @@ function initStudyModeNotesPanel(){
     }
   });
 
+  async function implementStudyMode(isStudyOn, verseFound){
+    let body = {isStudyOn: isStudyOn, verse: verseFound};
+    let requestUrl = isStudyOn? 'api/start_backend/' : 'api/end_backend/';
+    let data = await makeRequest(requestUrl, method="post", body=JSON.stringify(body))
+    if (isStudyOn && data.started === true) {
+      console.log("Study mode started with 0 verses referenced!");
+      // openNotes(data.verse)
+    } else if (!isStudyOn && data.stopped === true) {
+      console.log("Study mode stopped!");
+      // closeNotes()
+    };
+  };
+
   // Optional: also show fresh chips after each user send (fake “AI suggestions”)
   const chatForm  = App.el.chatForm;
   if (chatForm) {
     chatForm.addEventListener('submit', () => {
       if (studyOn) {
         // For demo: re-render the same chips; later plug in real suggestions
-        renderChips(DEMO_VERSES);
+        //renderChips(DEMO_VERSES);
       }
     });
   }
