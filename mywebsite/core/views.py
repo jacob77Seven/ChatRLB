@@ -67,3 +67,11 @@ def stt_once(request):
         stream.stop_stream(); stream.close(); pa.terminate()
 
     return JsonResponse({"text": text})
+
+def GetVerseReferences(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        chat_history = data.get('history', []) 
+        verse_data = GetVerseReferences(chat_history) 
+        return JsonResponse({'verses': verse_data}) 
+    return JsonResponse({'verses': []})

@@ -1059,7 +1059,8 @@ function initStudyModeNotesPanel(){
 
   if (!studyBtn || !bar || !panel || !closeBtn || !refEl || !textEl || !pointsEl) return;
 
-  const DEMO_VERSES = [
+
+  /*const DEMO_VERSES = [
     {
       ref: "John 3:3",
       text: "Jesus answered, 'Truly, truly, I say to you, unless one is born again he cannot see the kingdom of God.'",
@@ -1075,7 +1076,7 @@ function initStudyModeNotesPanel(){
       text: "Jesus prays for future believers to be one, so the world may believe.",
       notes: ["Unity among believers is a witness.", "From the High Priestly Prayer."]
     }
-  ];
+  ];*/
 
   function renderChips(verses = []) {
     const bar = document.getElementById('study-bar');
