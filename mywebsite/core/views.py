@@ -10,6 +10,8 @@ import os, json, pyaudio
 from vosk import Model, KaldiRecognizer
 import markdown
 from .backend.BackendStudyManager import *
+from django.views.decorators.http import require_POST
+import json
 
 # Create your views here.
 from django.shortcuts import render
@@ -75,3 +77,21 @@ def GetVerseReferences(request):
         verse_data = GetVerseReferences(chat_history) 
         return JsonResponse({'verses': verse_data}) 
     return JsonResponse({'verses': []})
+
+@require_POST
+def start_backend(request):
+    try:
+        body = json.loads(request.body or "{}")
+        verse = body.get("verse", "") or ""
+        StartBackend(verse)
+        return JsonResponse({"ok": True, "started": True, "verse": verse})
+    except Exception as e:
+        return JsonResponse({"ok": False, "error": str(e)}, status=500)
+
+@require_POST
+def end_backend(request):
+    try:
+        EndBackend()
+        return JsonResponse({"ok": True, "stopped": True})
+    except Exception as e:
+        return JsonResponse({"ok": False, "error": str(e)}, status=500)
