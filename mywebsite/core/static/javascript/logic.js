@@ -1079,32 +1079,17 @@ function initStudyModeNotesPanel(){
   ];*/
 
   function renderChips(verses = []) {
-bar.classList.remove('hidden');
-    bar.innerHTML = '';
-    verses.forEach(v => {
-      const chip = document.createElement('button');
-      chip.type = 'button';
-      chip.className = 'chip';
-      chip.textContent = v.ref;
-
-      chip.addEventListener('click', async () => {
-        try {
-          // If NOT already in study mode, start backend with this verse and show panel
-          if (!window.studyOn) {
-            await apiStartBackend(v.ref || "");
-            window.studyOn = true;
-            document.body.classList.add('with-notes');
-            panel.classList.remove('hidden');
-          }
-          // Fill/open the notes panel 
-          openNotes(v);
-        } catch (e) {
-          console.warn("chip click error:", e);
-        }
-      });
-
-      bar.appendChild(chip);
-    });
+    const bar = document.getElementById('study-bar');
+  bar.classList.remove('hidden');      // show slot
+  bar.innerHTML = '';
+  verses.forEach(v => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'chip';
+    chip.textContent = v.ref;
+    chip.addEventListener('click', () => openNotes(v));
+    bar.appendChild(chip);
+  });
   }
 
   function openNotes(verse) {
