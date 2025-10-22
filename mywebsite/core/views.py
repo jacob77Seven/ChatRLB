@@ -34,7 +34,7 @@ def chatbot_reply(request):
         bot_reply = model_manager.gen_Response(user_input)
         formatted_bot_reply = markdown.markdown(bot_reply)
         # bot_reply = response.message.content # f"Jesus says: '{user_input}' is a great question to reflect on."
-        GetVerseReferences()
+        # output = GetVerseReferences()
         return JsonResponse({"reply": formatted_bot_reply})
 
     return JsonResponse({"error": "Invalid request"}, status=400)
@@ -68,10 +68,51 @@ def stt_once(request):
 
     return JsonResponse({"text": text})
 
-def GetVerseReferences(request):
+def GetVerseReferencesR(request):
     if request.method == 'POST':
+        verse_data = GetVerseReferences()
+        # formatted_data = [{'ref': verse} for verse in verse_data]
+        formatted_data = verse_data
+        print(formatted_data)
+        # We set `safe=False` because we are returning a list as the top-level object.
+        jr = JsonResponse(formatted_data, safe=False)
+        return jr
+    return JsonResponse([], safe=False)
+
+
+def output(request):
+    # print("CALLED OUTPUT!")
+    if request.method == 'POST':
+        # Parse the JSON body
         data = json.loads(request.body)
-        chat_history = data.get('history', []) 
-        verse_data = GetVerseReferences(chat_history) 
-        return JsonResponse({'verses': verse_data}) 
-    return JsonResponse({'verses': []})
+        text = data.get('text', '')
+        
+        # Do something with the text
+        result = print(text)  # Your actual function
+    return JsonResponse([], safe=False)
+
+
+def StopStudyModeR(request):
+    StopStudyMode()
+    # print("CALLED OUTPUT!")
+    if request.method == 'POST':
+        # Parse the JSON body
+        data = json.loads(request.body)
+        text = data.get('text', '')
+        
+        # Do something with the text
+        result = print(text)  # Your actual function
+    return JsonResponse([], safe=False)
+
+def StartStudyModeR(request):
+    # print("CALLED OUTPUT!")
+    if request.method == 'POST':
+        # Parse the JSON body
+        data = json.loads(request.body)
+        text = data.get('text', '')
+        
+        # Do something with the text
+        result = print(text)  # Your actual function
+        StartStudyMode(text)
+    return JsonResponse([], safe=False)
+

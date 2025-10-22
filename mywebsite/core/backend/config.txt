@@ -1,0 +1,10 @@
+# Files
+
+# train_path = queries.json
+# test_path = Tests.json
+# results_path = results.csv
+
+train_path = BibleTrain.json
+test_path = Moe_Tests_v2.json
+embed_path = MOE_embeddings
+results_path = results.csv

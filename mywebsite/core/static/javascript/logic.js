@@ -20,6 +20,214 @@ let activeSession = 0; // defaults to index 0
 const $id  = (x) => document.getElementById(x);
 const $one = (sel) => document.querySelector(sel);
 
+DEMO_VERSES = [
+    "John 3:16",
+    "Luke 11:1–4",
+    "John 17:20–21"
+];
+
+async function renderChips(verses = []) {
+  const bar = document.getElementById('study-bar');
+  if (!bar) return; // Add a safety check
+  bar.classList.remove('hidden');      // show slot
+  bar.innerHTML = '';
+  await printOut("Sending a message to python from js")
+  verses.forEach(v => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'chip';
+    chip.textContent = v;
+    // Pass the verse string to openNotes
+    chip.addEventListener('click', () => openNotes(v));
+    bar.appendChild(chip);
+  });
+}
+
+async function printOut(text){
+  try {
+    await fetch("/output/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCSRFToken()  // Django CSRF token
+      },
+      body: JSON.stringify({ text: text })
+    });
+  } catch (error) {
+    console.error('Error calling Python function:', error);
+    return null;
+  }
+}
+
+
+// async function openNotes(verse) {
+//   // Use the global App.el cache instead of local variables
+//   await printOut("setting notes up.");
+//   if (App.el.notesRef) 
+//     App.el.notesRef.textContent = verse || '';
+//   // if (App.el.notesText) 
+//   //   App.el.notesText.textContent = verse || '';
+  
+//   if (App.el.notesPoints) {
+//     App.el.notesPoints.innerHTML = ''; // Clear previous notes
+//     li = document.createElement('li');
+//     li.textContent = verse;
+//     App.el.notesPoints.appendChild(li);
+//   }
+//   else
+//     await printOut("Error, no App.el.notesPoints");
+//   panel.classList.remove('hidden');
+//   document.body.classList.add('with-notes');     // <-- enable split layout
+//   document.getElementById('notes-panel').classList.remove('hidden');
+// }
+
+
+async function openNotes(verse) {
+  await printOut("setting notes up.");
+  App.el.notesRef.textContent = verse;
+  App.el.notesText.textContent = "";
+  App.el.notesPoints.innerHTML = '';
+  // (["verse notes1"], ["verse notes 2"], ["verse notes 3"]).forEach(n => {
+  //   const li = document.createElement('li');
+  //   li.textContent = n;
+  //   pointsEl.appendChild(li);
+  // });
+
+  App.el.notesPanel.classList.remove('hidden');
+  await printOut("still setting notes up.");
+  document.body.classList.add('with-notes');     // <-- enable split layout
+  document.getElementById('notes-panel').classList.remove('hidden');
+  await printOut("finished setting notes up.");
+
+  try {
+    await fetch("/StartStudyMode/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCSRFToken()  // Django CSRF token
+      },
+      body: JSON.stringify({ verse: verse })
+    });
+  } catch (error) {
+    console.error('Error calling Python function:', error);
+    return null;
+  }
+}
+
+async function closeNotes() {
+  await printOut("Pressed Close Notes.");
+  document.getElementById('notes-panel').classList.add('hidden');
+  document.body.classList.remove('with-notes');
+  try {
+    await fetch("/StopStudyMode/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCSRFToken()  // Django CSRF token
+      }
+    });
+  } catch (error) {
+    console.error('Error calling Python function:', error);
+    return null;
+  }
+
+}
+
+// async function openNotes(verse) {
+//   await printOut("Ran OpenNotes!!!")
+//   await printOut(verse)
+//   // verse is now a simple string like "John 3:16"
+//   if (App.el.notesRef) App.el.notesRef.textContent = verse || '';
+  
+//   // Clear the notes text area
+//   if (App.el.notesText) App.el.notesText.textContent = '';
+  
+//   if (App.el.notesPoints) {
+//     App.el.notesPoints.innerHTML = ''; // Clear previous notes
+    
+//     // Show placeholder message
+//     const li = document.createElement('li');
+//     li.textContent = `Notes for ${verse} will appear here`;
+//     li.style.fontStyle = 'italic';
+//     li.style.color = '#666';
+//     App.el.notesPoints.appendChild(li);
+//   }
+// }
+
+
+// async function openNotes(verse) {
+//   refEl.textContent = verse.ref || '';
+//   textEl.textContent = verse.text || '';
+//   pointsEl.innerHTML = '';
+//   (verse.notes || []).forEach(n => {
+//     const li = document.createElement('li');
+//     li.textContent = n;
+//     pointsEl.appendChild(li);
+//   });
+//   panel.classList.remove('hidden');
+//   document.body.classList.add('with-notes');     // <-- enable split layout
+//   document.getElementById('notes-panel').classList.remove('hidden');
+// }
+
+
+// async function openNotes(verse) {
+//   // verse is now a simple string like "John 3:16"
+//   if (App.el.notesRef) App.el.notesRef.textContent = verse || '';
+  
+//   // Clear the notes text area
+//   if (App.el.notesText) App.el.notesText.textContent = '';
+  
+//   if (App.el.notesPoints) {
+//     App.el.notesPoints.innerHTML = 'Loading notes...';
+    
+//     try {
+//       // Fetch notes for this verse from Python backend
+//       const response = await fetch("/get_notes_for_verse/", {
+//         method: "POST",
+//         headers: {
+//           "Content-Type": "application/json",
+//           "X-CSRFToken": getCSRFToken()
+//         },
+//         body: JSON.stringify({ verse })
+//       });
+      
+//       const data = await response.json();
+//       App.el.notesPoints.innerHTML = ''; // Clear loading message
+      
+//       // Check if notes exist in the response
+//       if (!data.notes || data.notes.length === 0) {
+//         const li = document.createElement('li');
+//         li.textContent = `No notes yet for ${verse}`;
+//         li.style.fontStyle = 'italic';
+//         li.style.color = '#666';
+//         App.el.notesPoints.appendChild(li);
+//       } else {
+//         // Display the notes
+//         data.notes.forEach(note => {
+//           const li = document.createElement('li');
+//           li.textContent = note;
+//           App.el.notesPoints.appendChild(li);
+//         });
+//       }
+      
+//       // Optionally populate the notes text area if there's text content
+//       if (App.el.notesText && data.text) {
+//         App.el.notesText.textContent = data.text;
+//       }
+      
+//     } catch (error) {
+//       console.error('Error fetching notes:', error);
+//       App.el.notesPoints.innerHTML = '';
+//       const li = document.createElement('li');
+//       li.textContent = 'Error loading notes';
+//       li.style.color = '#d32f2f';
+//       App.el.notesPoints.appendChild(li);
+//     }
+//   }
+// }
+
+let studyOn = false;
+
 // central cache/state (non-invasive)
 const App = {
   el: {},
@@ -539,7 +747,7 @@ function initChatWiring(){
     chatInput.value = "";
 
     try {
-      const response = await fetch("/chatbot/", {
+      const response = await fetch("/chatbott/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -550,7 +758,6 @@ function initChatWiring(){
       const data = await response.json();
       const botText = data.reply || "No response";
       appendMessage("bot", botText, chatContainer);
-
       // --- history handling ---
       const messageSet = { question: message, chatResponse: botText };
       if (App.state.hasChattedOnce === false) {
@@ -566,6 +773,20 @@ function initChatWiring(){
       } else {
         chatHistory[activeSession].messages.push(messageSet);
         saveChatHistory();
+      }
+      if (!studyOn) {
+        // For demo: re-render the same chips; later plug in real suggestions
+        vrses = await fetch("/get_verse_references/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCSRFToken()
+          },
+          body: JSON.stringify({ message })
+        });
+        // console.warn("test output - ", test);
+        const versesData = await vrses.json();
+        await renderChips(versesData);
       }
     } catch (err) {
       appendMessage("bot", "⚠️ Error: Could not contact server.", chatContainer);
@@ -1059,81 +1280,28 @@ function initStudyModeNotesPanel(){
 
   if (!studyBtn || !bar || !panel || !closeBtn || !refEl || !textEl || !pointsEl) return;
 
-
-  /*const DEMO_VERSES = [
-    {
-      ref: "John 3:3",
-      text: "Jesus answered, 'Truly, truly, I say to you, unless one is born again he cannot see the kingdom of God.'",
-      notes: ["Spiritual rebirth is required to perceive God's kingdom.", "Context: Nicodemus."]
-    },
-    {
-      ref: "Luke 11:1–4",
-      text: "Jesus teaches the Lord’s Prayer as a model for prayer.",
-      notes: ["Prioritizes God’s name and kingdom.", "Daily dependence, forgiveness, protection from temptation."]
-    },
-    {
-      ref: "John 17:20–21",
-      text: "Jesus prays for future believers to be one, so the world may believe.",
-      notes: ["Unity among believers is a witness.", "From the High Priestly Prayer."]
-    }
-  ];*/
-
-  function renderChips(verses = []) {
-    const bar = document.getElementById('study-bar');
-  bar.classList.remove('hidden');      // show slot
-  bar.innerHTML = '';
-  verses.forEach(v => {
-    const chip = document.createElement('button');
-    chip.type = 'button';
-    chip.className = 'chip';
-    chip.textContent = v.ref;
-    chip.addEventListener('click', () => openNotes(v));
-    bar.appendChild(chip);
-  });
-  }
-
-  function openNotes(verse) {
-    refEl.textContent = verse.ref || '';
-    textEl.textContent = verse.text || '';
-    pointsEl.innerHTML = '';
-    (verse.notes || []).forEach(n => {
-      const li = document.createElement('li');
-      li.textContent = n;
-      pointsEl.appendChild(li);
-    });
-    panel.classList.remove('hidden');
-    document.body.classList.add('with-notes');     // <-- enable split layout
-    document.getElementById('notes-panel').classList.remove('hidden');
-  }
-
-  function closeNotes() {
-    document.getElementById('notes-panel').classList.add('hidden');
-    document.body.classList.remove('with-notes');
-  }
-
   closeBtn.addEventListener('click', closeNotes);
 
-  let studyOn = false;
   studyBtn.addEventListener('click', () => {
     studyOn = !studyOn;
-    if (studyOn) {
+    if (!studyOn) {
       renderChips(DEMO_VERSES);
     } else {
       bar.innerHTML = '';
       bar.classList.add('hidden'); 
-      closeNotes();
+      // closeNotes();
     }
   });
 
   // Optional: also show fresh chips after each user send (fake “AI suggestions”)
-  const chatForm  = App.el.chatForm;
-  if (chatForm) {
-    chatForm.addEventListener('submit', () => {
-      if (studyOn) {
-        // For demo: re-render the same chips; later plug in real suggestions
-        renderChips(DEMO_VERSES);
-      }
-    });
-  }
+  // const chatForm  = App.el.chatForm;
+  // if (chatForm) {
+  //   chatForm.addEventListener('submit', () => {
+  //     if (!studyOn) {
+  //       // For demo: re-render the same chips; later plug in real suggestions
+  //       renderChips(DEMO_VERSES);
+  //     }
+  //   });
+  // }
 }
 

@@ -2,12 +2,16 @@ from ollama import chat
 from ollama import ChatResponse
 # from ..Backend.book_ir
 from .book_ir import search_book
+# from .UseEmbed import Classifier
 
 class ModelManager:
     messages = []
     model = 0
     RecentReleventMaterial = []
     StudyMode = False
+    JustEnteredStudyMode = False
+    StudyModeVerse = ""
+    # Classf = Classifier()
     # @staticmethod
     def load_model(self):
         if self.model is None:
@@ -16,7 +20,11 @@ class ModelManager:
         self.messages = []
     def gen_Response(self, userInput):
         if (self.StudyMode):
-            return "Study mode active."
+            if self.JustEnteredStudyMode:
+                self.JustEnteredStudyMode = False
+                return f"Welcome to study mode! Please open your Bible to your selected passage. As you make observations, send them here and I'll give you guidance during your study session and will keep track of your notes in the right panel!"
+            else:
+                return userInput
         else:
             context = self.get_Relevent_Material(userInput)
             content = f"Use the following pieces of context to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer.\n\n{context}\n\nQuestion: {userInput}\nHelpful Answer:"
