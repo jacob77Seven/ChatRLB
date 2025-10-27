@@ -98,6 +98,7 @@ ChatRLB is a web-application with the purpose of answering user questions relate
 
 **Q:** How do I update the application?  
 **A:** Pull the latest version from the GitHub repository using `git pull origin main` and restart the server.  
+
 ---
 
 ## 8. Contact Information
