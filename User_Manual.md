@@ -12,30 +12,38 @@ ChatRLB is a web-application with the purpose of answering user questions relate
 ---
 
 ## 2. System Requirements
-- **Hardware:** - Computer or laptop - dual core processor - Internet connection
-- **Software:** - Operating system - Web browser: Google Chrome, Microsoft Edge, Firefox (latest versions recommended)  - Backend Environment: Python 3.11+   - Django 4.x framework 
-- **Other Dependencies:**  - HTML, CSS, and JavaScript for frontend functionality   - Installed packages from `requirements.txt`  
+1. **Hardware:** 
+- Computer or laptop 
+- dual core processor 
+- Internet connection
+2. **Software:** 
+- Operating system 
+- Web browser: Google Chrome, Microsoft Edge, Firefox (latest versions recommended)  
+- Backend Environment: Python 3.11+   
+- Django 4.x framework 
+3. **Other Dependencies:**  
+- HTML, CSS, and JavaScript for frontend functionality   
+- Installed packages from `requirements.txt`  
 
 ---
 
 ## 3. Installation Guide
 1. **Clone the Project Repository**
-   (bash)
-   git clone https://github.com/jacob77Seven/ChatRLB.git
-   cd ChatRLB
+  - (bash)
+  - git clone https://github.com/jacob77Seven/ChatRLB.git
+  - cd ChatRLB
 2. **Set up a Virtual Environment**
-   python -m venv venv
-   source venv/bin/activate   # Mac/Linux  
-   venv\Scripts\activate      # Windows
+  - python -m venv venv
+  - source venv/bin/activate   # Mac/Linux  
+  - venv\Scripts\activate      # Windows
 3. **Install Required Dependencies**
-   pip install -r requirements.txt
+  - pip install -r requirements.txt
 4. **Run Database Migrations**
-   python manage.py migrate
+  - python manage.py migrate
 5. **Start the Development Server**
-   python manage.py runserver
+  - python manage.py runserver
 6. **Access the Application**
-   Open your browser and go to:
-   http://127.0.0.1:8000
+  - Open your browser and go to: http://127.0.0.1:8000
 ---
 
 ## 4. Getting Started
@@ -78,7 +86,7 @@ ChatRLB is a web-application with the purpose of answering user questions relate
 | Speech feature not working | Missing library | Install speech packages or disable feature temporarily |
 ---
 
-## 7. FAQ *(Optional – Extra Credit)*
+## 7. FAQ 
 **Q:** Where does ChatRLB get its answers?  
 **A:** From a curated internal database of Red Letter Basics resources.  
 
@@ -94,4 +102,5 @@ ChatRLB is a web-application with the purpose of answering user questions relate
 ---
 
 ## 8. Contact Information
+- **Email:** support@redletterbasics.com
 - **Website:** https://redletterbasics.com
