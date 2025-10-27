@@ -90,15 +90,14 @@ ChatRLB is a web-application with the purpose of answering user questions relate
 **Q:** Where does ChatRLB get its answers?  
 **A:** From a curated internal database of Red Letter Basics resources.  
 
-**Q:** What happens if the AI doesn’t respond?
-**A:** Try refreshing the page or restarting the Django server using `python manage.py runserver`. If the issue continues, check your backend logs for connection errors.
+**Q:** What happens if the AI doesn’t respond?  
+**A:** Try refreshing the page or restarting the Django server using `python manage.py runserver`. If the issue continues, check your backend logs for connection errors.  
 
-**Q:** Is my data stored or tracked? 
+**Q:** Is my data stored or tracked?  
 **A:** ChatRLB only saves chats locally on the database for research and improvement purposes; no personal information is shared externally.
 
-**Q:** How do I update the application? 
-**A:** Pull the latest version from the GitHub repository using `git pull origin main` and restart the server.
-
+**Q:** How do I update the application?  
+**A:** Pull the latest version from the GitHub repository using `git pull origin main` and restart the server.  
 ---
 
 ## 8. Contact Information
